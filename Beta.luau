@@ -1,4 +1,4 @@
--- VOID UI | NEBULA EDITION (REDESIGNED & BEAUTIFIED)
+-- VOID UI | NEBULA EDITION (CLEAN CHRISTMAS & ANIMATIONS EDITION)
 -- Original Roblox UI Library
 
 local TweenService = game:GetService("TweenService")
@@ -9,16 +9,17 @@ local CoreGui = game:GetService("CoreGui")
 local VoidUI = {}
 
 local Theme = {
-    Background = Color3.fromRGB(15, 13, 26),      -- ม่วงเข้มลึกขึ้น
-    Sidebar = Color3.fromRGB(20, 17, 34),       -- สีแถบเมนูด้านข้าง
-    Card = Color3.fromRGB(30, 26, 48),          -- สีพื้นหลังของการ์ด/ปุ่ม
-    Hover = Color3.fromRGB(45, 38, 71),          -- สีเวลาเอาเมาส์ชี้
-    Accent = Color3.fromRGB(175, 110, 255),     -- สีม่วงนีออนหลัก (สว่างขึ้น)
-    AccentGlow = Color3.fromRGB(130, 70, 220),  -- สีเงา
-    Text = Color3.fromRGB(250, 248, 255),       -- สีข้อความหลัก
-    Muted = Color3.fromRGB(145, 138, 175),      -- สีข้อความรอง
-    Border = Color3.fromRGB(65, 52, 95),        -- สีขอบ
+    Background = Color3.fromRGB(15, 13, 26),
+    Sidebar = Color3.fromRGB(20, 17, 34),
+    Card = Color3.fromRGB(30, 26, 48),
+    Hover = Color3.fromRGB(45, 38, 71),
+    Accent = Color3.fromRGB(235, 75, 75),       -- สีแดงคริสต์มาส
+    AccentGlow = Color3.fromRGB(100, 210, 140), -- สีเขียวคริสต์มาส
+    Text = Color3.fromRGB(250, 248, 255),
+    Muted = Color3.fromRGB(145, 138, 175),
+    Border = Color3.fromRGB(65, 52, 95),
     Red = Color3.fromRGB(240, 100, 100),
+    Green = Color3.fromRGB(100, 235, 130),
 }
 
 local function create(class, props, parent)
@@ -46,11 +47,15 @@ local function stroke(parent, color, transparency, thickness)
     }, parent)
 end
 
-local function tween(obj, duration, props)
+local function tween(obj, duration, props, style, direction)
     local success, result = pcall(function()
         return TweenService:Create(
             obj,
-            TweenInfo.new(duration, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+            TweenInfo.new(
+                duration or 0.25, 
+                style or Enum.EasingStyle.Quart, 
+                direction or Enum.EasingDirection.Out
+            ),
             props
         )
     end)
@@ -103,7 +108,8 @@ function VoidUI:CreateWindow(options)
     options = options or {}
 
     local title = options.Title or "VOID UI"
-    local subtitle = options.Subtitle or "NEBULA EDITION"
+    local subtitle = options.Subtitle or "CHRISTMAS EDITION 🎄"
+    local logoImage = options.LogoImage or ""
     local keySystem = options.KeySystem or false
     local keySettings = options.KeySettings or {}
 
@@ -114,7 +120,7 @@ function VoidUI:CreateWindow(options)
     end
 
     local gui = create("ScreenGui", {
-        Name = "VoidUINebula",
+        Name = "VoidUIChristmas",
         ResetOnSpawn = false,
         IgnoreGuiInset = true,
         DisplayOrder = 100,
@@ -138,14 +144,7 @@ function VoidUI:CreateWindow(options)
         corner(toast, 14)
         stroke(toast, Theme.Accent, 0.3, 1.5)
 
-        -- เงาเรืองแสงเบาๆ
-        create("UIStroke", {
-            Color = Theme.AccentGlow,
-            Transparency = 0.7,
-            Thickness = 4,
-        }, toast)
-
-        local t = label(toast, titleText or "Notification", 14, Theme.Accent, Enum.Font.GothamBold)
+        local t = label(toast, "🎅 " .. (titleText or "Notification"), 14, Theme.Green, Enum.Font.GothamBold)
         t.Position = UDim2.fromOffset(14, 10)
         t.Size = UDim2.new(1, -28, 0, 22)
         t.ZIndex = 21
@@ -155,11 +154,12 @@ function VoidUI:CreateWindow(options)
         m.Size = UDim2.new(1, -28, 0, 35)
         m.ZIndex = 21
 
-        tween(toast, 0.4, { Position = UDim2.new(1, -16, 0, 16) })
+        toast.Position = UDim2.new(1, 280, 0, 16)
+        tween(toast, 0.4, { Position = UDim2.new(1, -16, 0, 16) }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
         task.delay(duration or 3, function()
             if toast and toast.Parent then
-                tween(toast, 0.3, { Position = UDim2.new(1, 280, 0, 16) })
+                tween(toast, 0.3, { Position = UDim2.new(1, 280, 0, 16) }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
                 task.wait(0.35)
                 if toast and toast.Parent then
                     toast:Destroy()
@@ -173,10 +173,13 @@ function VoidUI:CreateWindow(options)
     local mainFrame = nil
     local sidebar = nil
     local content = nil
+    local bgImageLabel = nil
     local tabs = {}
     local activeTab = nil
     local viewportConn = nil
     local pendingTabs = {}
+    local isMinimized = false
+    local isVisible = true
 
     local function buildMainUI()
         if mainUIBuilt then return end
@@ -186,19 +189,29 @@ function VoidUI:CreateWindow(options)
             Name = "Main",
             AnchorPoint = Vector2.new(0.5, 0.5),
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromOffset(680, 440),
+            Size = UDim2.fromOffset(0, 0),
+            BackgroundTransparency = 1,
             BackgroundColor3 = Theme.Background,
             BorderSizePixel = 0,
-            ClipsDescendants = false,
+            ClipsDescendants = true,
         }, gui)
 
         corner(mainFrame, 18)
         stroke(mainFrame, Theme.Border, 0.2, 1.2)
 
-        -- เพิ่ม Glow Effect รอบกรอบหน้าต่างหลัก
+        bgImageLabel = create("ImageLabel", {
+            Name = "CustomBackground",
+            Size = UDim2.fromScale(1, 1),
+            BackgroundTransparency = 1,
+            Image = "",
+            ImageTransparency = 0.3,
+            ScaleType = Enum.ScaleType.Crop,
+            ZIndex = 0,
+        }, mainFrame)
+
         create("UIStroke", {
-            Color = Theme.Accent,
-            Transparency = 0.6,
+            Color = Theme.Green,
+            Transparency = 0.5,
             Thickness = 3,
         }, mainFrame)
 
@@ -208,34 +221,42 @@ function VoidUI:CreateWindow(options)
         }, mainFrame)
 
         local camera = workspace.CurrentCamera
+        local targetSize = UDim2.fromOffset(680, 440)
+
         local function resize()
             if not camera or not mainFrame then return end
             local viewport = camera.ViewportSize
-            mainFrame.Size = UDim2.fromOffset(
+            targetSize = UDim2.fromOffset(
                 math.max(300, math.min(680, viewport.X - 24)),
                 math.max(320, math.min(440, viewport.Y - 50))
             )
+            if mainUIBuilt and not isMinimized and mainFrame.Size ~= UDim2.fromOffset(0, 0) then
+                mainFrame.Size = targetSize
+            end
         end
 
         resize()
+        tween(mainFrame, 0.45, { Size = targetSize, BackgroundTransparency = 0 }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
         if camera then
             viewportConn = camera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
         end
 
-        -- Top Bar (ส่วนหัว)
+        -- Top Bar
         local top = create("Frame", {
             Size = UDim2.new(1, 0, 0, 68),
             BackgroundColor3 = Theme.Sidebar,
             BorderSizePixel = 0,
+            ZIndex = 2,
         }, mainFrame)
         corner(top, 18)
 
-        -- ตัดมุมล่างของ Top bar ให้ตรง
         local fixTop = create("Frame", {
             Position = UDim2.new(0, 0, 1, -10),
             Size = UDim2.new(1, 0, 0, 10),
             BackgroundColor3 = Theme.Sidebar,
             BorderSizePixel = 0,
+            ZIndex = 2,
         }, top)
 
         local logo = create("Frame", {
@@ -243,27 +264,48 @@ function VoidUI:CreateWindow(options)
             Size = UDim2.fromOffset(38, 38),
             BackgroundColor3 = Theme.Accent,
             BorderSizePixel = 0,
+            ZIndex = 3,
         }, top)
         corner(logo, 12)
 
-        create("TextLabel", {
-            BackgroundTransparency = 1,
-            Size = UDim2.fromScale(1, 1),
-            Text = "V",
-            TextColor3 = Theme.Text,
-            Font = Enum.Font.GothamBlack,
-            TextSize = 22,
-            TextXAlignment = Enum.TextXAlignment.Center,
-        }, logo)
+        if logoImage ~= "" then
+            local logoImgLabel = create("ImageLabel", {
+                Size = UDim2.fromScale(1, 1),
+                BackgroundTransparency = 1,
+                ScaleType = Enum.ScaleType.Crop,
+                ZIndex = 4,
+            }, logo)
+            corner(logoImgLabel, 12)
+
+            if string.match(logoImage, "^%d+$") then
+                logoImgLabel.Image = "rbxassetid://" .. logoImage
+            else
+                logoImgLabel.Image = logoImage
+            end
+        else
+            create("TextLabel", {
+                BackgroundTransparency = 1,
+                Size = UDim2.fromScale(1, 1),
+                Text = "🎄",
+                TextColor3 = Theme.Text,
+                Font = Enum.Font.GothamBlack,
+                TextSize = 18,
+                TextXAlignment = Enum.TextXAlignment.Center,
+                ZIndex = 4,
+            }, logo)
+        end
 
         local titleLabel = label(top, title, 16, Theme.Text, Enum.Font.GothamBold)
         titleLabel.Position = UDim2.fromOffset(66, 14)
         titleLabel.Size = UDim2.new(1, -130, 0, 22)
+        titleLabel.ZIndex = 3
 
-        local subLabel = label(top, subtitle, 10, Theme.Accent, Enum.Font.GothamBold)
+        local subLabel = label(top, subtitle, 10, Theme.Green, Enum.Font.GothamBold)
         subLabel.Position = UDim2.fromOffset(67, 38)
         subLabel.Size = UDim2.new(1, -130, 0, 15)
+        subLabel.ZIndex = 3
 
+        -- Close Button (×)
         local close = create("TextButton", {
             AnchorPoint = Vector2.new(1, 0.5),
             Position = UDim2.new(1, -16, 0.5, 0),
@@ -274,6 +316,7 @@ function VoidUI:CreateWindow(options)
             TextColor3 = Theme.Text,
             Font = Enum.Font.Gotham,
             AutoButtonColor = false,
+            ZIndex = 3,
         }, top)
         corner(close, 10)
         stroke(close, Theme.Border, 0.4)
@@ -287,10 +330,48 @@ function VoidUI:CreateWindow(options)
 
         close.Activated:Connect(function()
             if viewportConn then viewportConn:Disconnect() end
+            tween(mainFrame, 0.3, { Size = UDim2.fromOffset(0, 0), BackgroundTransparency = 1 }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+            task.wait(0.3)
             gui:Destroy()
         end)
 
-        -- ระบบลากหน้าต่าง
+        -- Minimize Button (-)
+        local minimize = create("TextButton", {
+            AnchorPoint = Vector2.new(1, 0.5),
+            Position = UDim2.new(1, -56, 0.5, 0),
+            Size = UDim2.fromOffset(32, 32),
+            BackgroundColor3 = Theme.Card,
+            Text = "-",
+            TextSize = 22,
+            TextColor3 = Theme.Text,
+            Font = Enum.Font.Gotham,
+            AutoButtonColor = false,
+            ZIndex = 3,
+        }, top)
+        corner(minimize, 10)
+        stroke(minimize, Theme.Border, 0.4)
+
+        minimize.MouseEnter:Connect(function()
+            tween(minimize, 0.2, { BackgroundColor3 = Theme.Hover })
+        end)
+        minimize.MouseLeave:Connect(function()
+            tween(minimize, 0.2, { BackgroundColor3 = Theme.Card })
+        end)
+
+        minimize.Activated:Connect(function()
+            isMinimized = not isMinimized
+            if isMinimized then
+                sidebar.Visible = false
+                content.Visible = false
+                tween(mainFrame, 0.3, { Size = UDim2.fromOffset(targetSize.X.Offset, 68) })
+            else
+                sidebar.Visible = true
+                content.Visible = true
+                tween(mainFrame, 0.3, { Size = targetSize })
+            end
+        end)
+
+        -- Drag Window
         local dragging = false
         local dragStart = Vector2.zero
         local startPosition = UDim2.new()
@@ -324,12 +405,13 @@ function VoidUI:CreateWindow(options)
             end
         end)
 
-        -- Sidebar (เมนูด้านข้าง)
+        -- Sidebar
         sidebar = create("Frame", {
             Position = UDim2.fromOffset(0, 68),
             Size = UDim2.new(0, 155, 1, -68),
             BackgroundColor3 = Theme.Sidebar,
             BorderSizePixel = 0,
+            ZIndex = 2,
         }, mainFrame)
 
         create("UIListLayout", {
@@ -343,21 +425,41 @@ function VoidUI:CreateWindow(options)
             PaddingRight = UDim.new(0, 12),
         }, sidebar)
 
-        -- Content Area (พื้นที่แสดงเนื้อหา)
+        -- Content
         content = create("Frame", {
             Position = UDim2.new(0, 155, 0, 68),
             Size = UDim2.new(1, -155, 1, -68),
             BackgroundTransparency = 1,
+            ZIndex = 2,
         }, mainFrame)
 
         for _, pTab in ipairs(pendingTabs) do
             window:_RealCreateTab(pTab.TabName, pTab.IconText, pTab.TabObj)
         end
         pendingTabs = {}
+
+        -- RightShift Toggle UI Visibility
+        UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if input.KeyCode == Enum.KeyCode.RightShift then
+                isVisible = not isVisible
+                mainFrame.Visible = isVisible
+            end
+        end)
     end
 
     function window:Notify(titleText, message, duration)
         notify(titleText, message, duration)
+    end
+
+    function window:SetBackground(imageId)
+        task.spawn(function()
+            while not mainFrame or not bgImageLabel do task.wait() end
+            if string.match(imageId, "^%d+$") then
+                bgImageLabel.Image = "rbxassetid://" .. imageId
+            else
+                bgImageLabel.Image = imageId
+            end
+        end)
     end
 
     function window:_RealCreateTab(tabName, iconText, tabObj)
@@ -369,16 +471,15 @@ function VoidUI:CreateWindow(options)
         }, sidebar)
         corner(nav, 10)
 
-        local navText = label(nav, (iconText or "◆") .. "   " .. tabName, 12, Theme.Muted, Enum.Font.GothamMedium)
+        local navText = label(nav, (iconText or "🎁") .. "   " .. tabName, 12, Theme.Muted, Enum.Font.GothamMedium)
         navText.Position = UDim2.fromOffset(12, 0)
         navText.Size = UDim2.new(1, -15, 1, 0)
         navText.TextYAlignment = Enum.TextYAlignment.Center
 
-        -- แถบสว่างเล็กๆ ด้านข้างเวลาเลือก Tab
         local indicator = create("Frame", {
             Position = UDim2.new(0, 0, 0.2, 0),
             Size = UDim2.new(0, 3, 0.6, 0),
-            BackgroundColor3 = Theme.Accent,
+            BackgroundColor3 = Theme.Green,
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
         }, nav)
@@ -390,7 +491,7 @@ function VoidUI:CreateWindow(options)
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             ScrollBarThickness = 3,
-            ScrollBarImageColor3 = Theme.Accent,
+            ScrollBarImageColor3 = Theme.Green,
             CanvasSize = UDim2.new(),
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             Visible = false,
@@ -411,14 +512,17 @@ function VoidUI:CreateWindow(options)
         local function activate()
             for _, item in ipairs(tabs) do
                 item.page.Visible = false
-                tween(item.nav, 0.25, { BackgroundColor3 = Theme.Sidebar })
-                tween(item.indicator, 0.25, { BackgroundTransparency = 1 })
+                tween(item.nav, 0.2, { BackgroundColor3 = Theme.Sidebar })
+                tween(item.indicator, 0.2, { BackgroundTransparency = 1 })
                 item.text.TextColor3 = Theme.Muted
             end
 
             page.Visible = true
-            tween(nav, 0.25, { BackgroundColor3 = Theme.Card })
-            tween(indicator, 0.25, { BackgroundTransparency = 0 })
+            page.Position = UDim2.new(0, 0, 0, 15)
+            tween(page, 0.3, { Position = UDim2.new(0, 0, 0, 0) }, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            
+            tween(nav, 0.2, { BackgroundColor3 = Theme.Card })
+            tween(indicator, 0.2, { BackgroundTransparency = 0 })
             navText.TextColor3 = Theme.Text
             activeTab = tabObj
         end
@@ -456,7 +560,7 @@ function VoidUI:CreateWindow(options)
         function tabObj:CreateSection(sectionName)
             task.spawn(function()
                 while not tabObj._Page do task.wait() end
-                local section = label(tabObj._Page, sectionName, 11, Theme.Accent, Enum.Font.GothamBold)
+                local section = label(tabObj._Page, "❄️ " .. sectionName, 11, Theme.Green, Enum.Font.GothamBold)
                 section.Size = UDim2.new(1, 0, 0, 24)
                 section.TextYAlignment = Enum.TextYAlignment.Center
             end)
@@ -490,7 +594,7 @@ function VoidUI:CreateWindow(options)
 
                 button.Activated:Connect(function()
                     tween(button, 0.1, { BackgroundColor3 = Theme.Accent })
-                    task.delay(0.15, function()
+                    task.delay(0.12, function()
                         if button and button.Parent then
                             tween(button, 0.2, { BackgroundColor3 = Theme.Card })
                         end
@@ -529,7 +633,7 @@ function VoidUI:CreateWindow(options)
                     AnchorPoint = Vector2.new(1, 0.5),
                     Position = UDim2.new(1, -14, 0.5, 0),
                     Size = UDim2.fromOffset(42, 24),
-                    BackgroundColor3 = value and Theme.Accent or Theme.Border,
+                    BackgroundColor3 = value and Theme.Green or Theme.Border,
                     BorderSizePixel = 0,
                 }, row)
                 corner(track, 12)
@@ -544,8 +648,8 @@ function VoidUI:CreateWindow(options)
 
                 local function setValue(newValue)
                     value = newValue == true
-                    tween(track, 0.2, { BackgroundColor3 = value and Theme.Accent or Theme.Border })
-                    tween(knob, 0.2, { Position = value and UDim2.new(1, -21, 0, 3) or UDim2.fromOffset(3, 3) })
+                    tween(track, 0.25, { BackgroundColor3 = value and Theme.Green or Theme.Border })
+                    tween(knob, 0.25, { Position = value and UDim2.new(1, -21, 0, 3) or UDim2.fromOffset(3, 3) }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
                     if options.Callback then
                         local ok, err = pcall(options.Callback, value)
@@ -592,7 +696,7 @@ function VoidUI:CreateWindow(options)
                 name.Position = UDim2.fromOffset(14, 10)
                 name.Size = UDim2.new(1, -70, 0, 22)
 
-                local number = label(card, tostring(value), 12, Theme.Accent, Enum.Font.GothamBold)
+                local number = label(card, tostring(value), 12, Theme.Green, Enum.Font.GothamBold)
                 number.Position = UDim2.new(1, -60, 0, 10)
                 number.Size = UDim2.fromOffset(46, 22)
                 number.TextXAlignment = Enum.TextXAlignment.Right
@@ -608,7 +712,7 @@ function VoidUI:CreateWindow(options)
                 local ratio = (value - min) / math.max(1, max - min)
                 local fill = create("Frame", {
                     Size = UDim2.new(ratio, 0, 1, 0),
-                    BackgroundColor3 = Theme.Accent,
+                    BackgroundColor3 = Theme.Green,
                     BorderSizePixel = 0,
                 }, bar)
                 corner(fill, 4)
@@ -638,7 +742,7 @@ function VoidUI:CreateWindow(options)
                     end
                 end
 
-                sliderMethods.Set = setValue
+-               sliderMethods.Set = setValue
                 sliderMethods.Get = function() return value end
 
                 local function updateFromInput(input)
@@ -695,8 +799,8 @@ function VoidUI:CreateWindow(options)
 
     -- Key System
     if keySystem then
-        local kTitle = keySettings.Title or "Authentication Required"
-        local kSubtitle = keySettings.Subtitle or "Please enter your key to continue"
+        local kTitle = keySettings.Title or "🎄 Christmas Authentication"
+        local kSubtitle = keySettings.Subtitle or "Enter your key to celebrate!"
         local kNote = keySettings.Note or ""
         local validKeys = keySettings.Key or {}
         if type(validKeys) == "string" then
@@ -706,7 +810,7 @@ function VoidUI:CreateWindow(options)
         local getLink = keySettings.GetLink or ""
         local webKeyUrl = keySettings.WebKeyUrl or ""
 
-        local fileName = "VoidUI_Key.txt"
+        local fileName = "VoidUI_ChristmasKey.txt"
         local savedKeyValid = false
 
         if saveKey then
@@ -730,17 +834,20 @@ function VoidUI:CreateWindow(options)
             Name = "KeySystem",
             AnchorPoint = Vector2.new(0.5, 0.5),
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromOffset(440, 270),
+            Size = UDim2.fromOffset(0, 0),
+            BackgroundTransparency = 1,
             BackgroundColor3 = Theme.Background,
             BorderSizePixel = 0,
             ClipsDescendants = false,
         }, gui)
 
+        tween(keyMain, 0.45, { Size = UDim2.fromOffset(440, 270), BackgroundTransparency = 0 }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
         corner(keyMain, 18)
         stroke(keyMain, Theme.Border, 0.3, 1.2)
 
         create("UIStroke", {
-            Color = Theme.Accent,
+            Color = Theme.Green,
             Transparency = 0.5,
             Thickness = 3,
         }, keyMain)
@@ -759,7 +866,7 @@ function VoidUI:CreateWindow(options)
             BorderSizePixel = 0,
         }, top)
 
-        local titleLabel = label(top, kTitle, 14, Theme.Text, Enum.Font.GothamBold)
+        local titleLabel = label(top, kTitle, 14, Theme.Green, Enum.Font.GothamBold)
         titleLabel.Position = UDim2.fromOffset(18, 0)
         titleLabel.Size = UDim2.new(1, -60, 1, 0)
         titleLabel.TextYAlignment = Enum.TextYAlignment.Center
@@ -786,6 +893,8 @@ function VoidUI:CreateWindow(options)
         end)
 
         close.Activated:Connect(function()
+            tween(keyMain, 0.3, { Size = UDim2.fromOffset(0, 0), BackgroundTransparency = 1 }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+            task.wait(0.3)
             if gui and gui.Parent then
                 gui:Destroy()
             end
@@ -806,7 +915,7 @@ function VoidUI:CreateWindow(options)
             BackgroundTransparency = 1,
             Position = UDim2.fromOffset(14, 0),
             Size = UDim2.new(1, -28, 1, 0),
-            PlaceholderText = "Enter your key here...",
+            PlaceholderText = "Enter Christmas key...",
             Text = "",
             TextColor3 = Theme.Text,
             PlaceholderColor3 = Theme.Muted,
@@ -861,9 +970,9 @@ function VoidUI:CreateWindow(options)
             getKeyBtn.Activated:Connect(function()
                 local success = safeSetClipboard(getLink)
                 if success then
-                    notify("Clipboard", "Get Key link copied to clipboard!", 3)
+                    notify("Clipboard", "Get Key link copied!", 3)
                 else
-                    notify("Get Key", "Check output/console for link.", 4)
+                    notify("Get Key", "Check output for link.", 4)
                 end
             end)
         end
@@ -903,15 +1012,15 @@ function VoidUI:CreateWindow(options)
                 if saveKey then
                     safeWritefile(fileName, enteredKey)
                 end
-                notify("Success", "Key accepted! Loading UI...", 2)
-                tween(keyMain, 0.3, { Size = UDim2.fromOffset(440, 0) })
+                notify("Success", "Merry Christmas! Loading...", 2)
+                tween(keyMain, 0.3, { Size = UDim2.fromOffset(0, 0), BackgroundTransparency = 1 }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
                 task.wait(0.3)
                 if keyMain and keyMain.Parent then
                     keyMain:Destroy()
                 end
                 buildMainUI()
             else
-                notify("Error", "Invalid key, please try again.", 3)
+                notify("Error", "Invalid key, try again!", 3)
                 stroke(textBoxBg, Theme.Red, 0)
                 task.delay(1, function()
                     if textBoxBg and textBoxBg.Parent then
