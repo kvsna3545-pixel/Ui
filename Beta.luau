@@ -742,7 +742,7 @@ function VoidUI:CreateWindow(options)
                     end
                 end
 
--               sliderMethods.Set = setValue
+                sliderMethods.Set = setValue
                 sliderMethods.Get = function() return value end
 
                 local function updateFromInput(input)
