@@ -1,4 +1,4 @@
--- VOID UI | EVADE & MOBILE EDITION (WITH LOCKED TOGGLE)
+-- VOID UI | FULL ELEMENTS EDITION (EVADE & MOBILE READY)
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -22,9 +22,7 @@ local Theme = {
 
 local function create(class, props, parent)
     local obj = Instance.new(class)
-    for key, value in pairs(props or {}) do
-        obj[key] = value
-    end
+    for key, value in pairs(props or {}) do obj[key] = value end
     if parent then obj.Parent = parent end
     return obj
 end
@@ -58,7 +56,6 @@ local function label(parent, text, size, color, font)
     }, parent)
 end
 
--- เอฟเฟกต์วงกลมเวลาคลิกปุ่ม (Ripple Effect)
 local function createRipple(parent)
     if not parent or not parent.AbsoluteSize then return end
     task.spawn(function()
@@ -78,24 +75,21 @@ local function createRipple(parent)
             Size = UDim2.fromOffset(maxSize, maxSize),
             BackgroundTransparency = 1
         })
-        
         tw:Play()
-        tw.Completed:Connect(function()
-            if ripple and ripple.Parent then ripple:Destroy() end
-        end)
+        tw.Completed:Connect(function() if ripple and ripple.Parent then ripple:Destroy() end end)
     end)
 end
 
 function VoidUI:CreateWindow(options)
     options = options or {}
     local title = options.Title or "VOID UI"
-    local subtitle = options.Subtitle or "EVADE SCRIPT 🏃"
+    local subtitle = options.Subtitle or "FULL ELEMENTS ⚡"
 
     local localPlayer = Players.LocalPlayer
     local targetContainer = localPlayer and localPlayer:FindFirstChild("PlayerGui") or CoreGui
 
     local gui = create("ScreenGui", {
-        Name = "VoidUIEvade",
+        Name = "VoidUIFullElements",
         ResetOnSpawn = false,
         IgnoreGuiInset = true,
         DisplayOrder = 100,
@@ -106,14 +100,8 @@ function VoidUI:CreateWindow(options)
 
     local window = {}
     local mainUIBuilt = false
-    local mainFrame = nil
-    local sidebar = nil
-    local content = nil
-    local floatingLogo = nil
-    local mobileToggleBtn = nil
-    local tabs = {}
-    local activeTab = nil
-    local pendingTabs = {}
+    local mainFrame, sidebar, content, floatingLogo, mobileToggleBtn
+    local tabs, activeTab, pendingTabs = {}, nil, {}
     local isVisible = true
 
     local function buildMainUI()
@@ -124,7 +112,7 @@ function VoidUI:CreateWindow(options)
             Name = "Main",
             AnchorPoint = Vector2.new(0.5, 0.5),
             Position = UDim2.fromScale(0.5, 0.5),
-            Size = UDim2.fromOffset(680, 440),
+            Size = UDim2.fromOffset(720, 480),
             BackgroundColor3 = Theme.Background,
             BorderSizePixel = 0,
             ClipsDescendants = true,
@@ -133,7 +121,6 @@ function VoidUI:CreateWindow(options)
         corner(mainFrame, 18)
         stroke(mainFrame, Theme.AccentGlow, 0.4, 2)
 
-        -- Floating Logo (ปุ่มวงกลมตอนปิด UI)
         floatingLogo = create("TextButton", {
             Name = "FloatingLogo",
             Position = UDim2.new(0, 20, 0, 20),
@@ -147,19 +134,8 @@ function VoidUI:CreateWindow(options)
         }, gui)
         corner(floatingLogo, 25)
         stroke(floatingLogo, Theme.AccentGlow, 0.2, 2)
+        label(floatingLogo, "⚡", 20, Theme.Text, Enum.Font.GothamBlack).TextXAlignment = Enum.TextXAlignment.Center
 
-        create("TextLabel", {
-            BackgroundTransparency = 1,
-            Size = UDim2.fromScale(1, 1),
-            Text = "🏃",
-            TextColor3 = Theme.Text,
-            Font = Enum.Font.GothamBlack,
-            TextSize = 22,
-            TextXAlignment = Enum.TextXAlignment.Center,
-            ZIndex = 101,
-        }, floatingLogo)
-
-        -- Mobile Toggle Button (ปุ่มเปิด-ปิด UI มุมซ้าย)
         mobileToggleBtn = create("TextButton", {
             Name = "MobileToggle",
             Position = UDim2.new(0, 20, 0, 100),
@@ -185,15 +161,8 @@ function VoidUI:CreateWindow(options)
         floatingLogo.Activated:Connect(function() createRipple(floatingLogo) toggleUI() end)
         mobileToggleBtn.Activated:Connect(function() createRipple(mobileToggleBtn) toggleUI() end)
 
-        -- Top Bar
-        local top = create("Frame", {
-            Size = UDim2.new(1, 0, 0, 68),
-            BackgroundColor3 = Theme.Sidebar,
-            BorderSizePixel = 0,
-            ZIndex = 2,
-        }, mainFrame)
+        local top = create("Frame", { Size = UDim2.new(1, 0, 0, 68), BackgroundColor3 = Theme.Sidebar, BorderSizePixel = 0, ZIndex = 2 }, mainFrame)
         corner(top, 18)
-
         label(top, title, 16, Theme.Text, Enum.Font.GothamBold).Position = UDim2.fromOffset(20, 14)
         label(top, subtitle, 10, Theme.AccentGlow, Enum.Font.GothamBold).Position = UDim2.fromOffset(21, 38)
 
@@ -212,13 +181,7 @@ function VoidUI:CreateWindow(options)
         }, top)
         corner(close, 16)
         stroke(close, Theme.Border, 0.4)
-
-        close.Activated:Connect(function()
-            createRipple(close)
-            if floatingLogo then floatingLogo:Destroy() end
-            if mobileToggleBtn then mobileToggleBtn:Destroy() end
-            gui:Destroy()
-        end)
+        close.Activated:Connect(function() createRipple(close) gui:Destroy() end)
 
         -- ลากหน้าต่าง UI
         local dragging, dragStart, startPosition = false, Vector2.zero, UDim2.new()
@@ -239,40 +202,19 @@ function VoidUI:CreateWindow(options)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
         end)
 
-        sidebar = create("Frame", {
-            Position = UDim2.fromOffset(0, 68),
-            Size = UDim2.new(0, 155, 1, -68),
-            BackgroundColor3 = Theme.Sidebar,
-            BorderSizePixel = 0,
-            ZIndex = 2,
-        }, mainFrame)
-
+        sidebar = create("Frame", { Position = UDim2.fromOffset(0, 68), Size = UDim2.new(0, 155, 1, -68), BackgroundColor3 = Theme.Sidebar, BorderSizePixel = 0, ZIndex = 2 }, mainFrame)
         create("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }, sidebar)
         create("UIPadding", { PaddingTop = UDim.new(0, 16), PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) }, sidebar)
 
-        content = create("Frame", {
-            Position = UDim2.new(0, 155, 0, 68),
-            Size = UDim2.new(1, -155, 1, -68),
-            BackgroundTransparency = 1,
-            ZIndex = 2,
-        }, mainFrame)
+        content = create("Frame", { Position = UDim2.new(0, 155, 0, 68), Size = UDim2.new(1, -155, 1, -68), BackgroundTransparency = 1, ZIndex = 2 }, mainFrame)
 
-        for _, pTab in ipairs(pendingTabs) do
-            window:_RealCreateTab(pTab.TabName, pTab.IconText, pTab.TabObj)
-        end
+        for _, pTab in ipairs(pendingTabs) do window:_RealCreateTab(pTab.TabName, pTab.IconText, pTab.TabObj) end
         pendingTabs = {}
     end
 
     function window:_RealCreateTab(tabName, iconText, tabObj)
-        local nav = create("TextButton", {
-            Size = UDim2.new(1, 0, 0, 40),
-            BackgroundColor3 = Theme.Sidebar,
-            Text = "",
-            AutoButtonColor = false,
-            ClipsDescendants = true,
-        }, sidebar)
+        local nav = create("TextButton", { Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = Theme.Sidebar, Text = "", AutoButtonColor = false, ClipsDescendants = true }, sidebar)
         corner(nav, 10)
-
         local navText = label(nav, (iconText or "📌") .. "   " .. tabName, 12, Theme.Muted, Enum.Font.GothamMedium)
         navText.Position = UDim2.fromOffset(12, 0)
         navText.Size = UDim2.new(1, -15, 1, 0)
@@ -313,92 +255,143 @@ function VoidUI:CreateWindow(options)
     function window:CreateTab(tabName, iconText)
         local tabObj = {}
 
-        -- ฟังก์ชันสร้างปุ่มกด (Button)
+        -- 1. Button
         function tabObj:CreateButton(options)
             options = options or {}
             task.spawn(function()
                 while not tabObj._Page do task.wait() end
-                local button = create("TextButton", {
-                    Size = UDim2.new(1, 0, 0, 48),
-                    BackgroundColor3 = Theme.Card,
-                    Text = "",
-                    AutoButtonColor = false,
-                    ClipsDescendants = true,
-                }, tabObj._Page)
+                local button = create("TextButton", { Size = UDim2.new(1, 0, 0, 48), BackgroundColor3 = Theme.Card, Text = "", AutoButtonColor = false, ClipsDescendants = true }, tabObj._Page)
                 corner(button, 14)
                 stroke(button, Theme.AccentGlow, 0.5, 1.2)
-
                 label(button, options.Name or "Button", 13, Theme.Text, Enum.Font.GothamMedium).Position = UDim2.fromOffset(14, 0)
-
-                button.Activated:Connect(function()
-                    createRipple(button)
-                    if options.Callback then pcall(options.Callback) end
-                end)
+                button.Activated:Connect(function() createRipple(button) if options.Callback then pcall(options.Callback) end end)
             end)
         end
 
-        -- ฟังก์ชันสร้างปุ่มเปิด-ปิด (Toggle) พร้อมรองรับการล็อกสถานะ (Locked)
+        -- 2. Toggle
         function tabObj:CreateToggle(options)
             options = options or {}
             local value = options.Default == true
-            local isLocked = options.Locked == true
             local toggleMethods = {}
-
             task.spawn(function()
                 while not tabObj._Page do task.wait() end
-                local row = create("TextButton", {
-                    Size = UDim2.new(1, 0, 0, 52),
-                    BackgroundColor3 = Theme.Card,
-                    Text = "",
-                    AutoButtonColor = false,
-                    ClipsDescendants = true,
-                }, tabObj._Page)
+                local row = create("TextButton", { Size = UDim2.new(1, 0, 0, 52), BackgroundColor3 = Theme.Card, Text = "", AutoButtonColor = false, ClipsDescendants = true }, tabObj._Page)
                 corner(row, 14)
-                stroke(row, isLocked and Theme.Red or Theme.AccentGlow, 0.5, 1.2)
+                stroke(row, Theme.AccentGlow, 0.5, 1.2)
+                label(row, options.Name or "Toggle", 13, Theme.Text, Enum.Font.GothamMedium).Position = UDim2.fromOffset(14, 0)
 
-                local displayName = options.Name or "Toggle"
-                if isLocked then
-                    displayName = displayName .. " 🔒"
-                end
-                label(row, displayName, 13, isLocked and Theme.Muted or Theme.Text, Enum.Font.GothamMedium).Position = UDim2.fromOffset(14, 0)
-
-                local track = create("Frame", {
-                    AnchorPoint = Vector2.new(1, 0.5),
-                    Position = UDim2.new(1, -14, 0.5, 0),
-                    Size = UDim2.fromOffset(42, 24),
-                    BackgroundColor3 = isLocked and Theme.Border or (value and Theme.Green or Theme.Border),
-                    BorderSizePixel = 0,
-                }, row)
+                local track = create("Frame", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -14, 0.5, 0), Size = UDim2.fromOffset(42, 24), BackgroundColor3 = value and Theme.Green or Theme.Border, BorderSizePixel = 0 }, row)
                 corner(track, 12)
-
-                local knob = create("Frame", {
-                    Position = value and UDim2.new(1, -21, 0, 3) or UDim2.fromOffset(3, 3),
-                    Size = UDim2.fromOffset(18, 18),
-                    BackgroundColor3 = isLocked and Theme.Muted or Theme.Text,
-                    BorderSizePixel = 0,
-                }, track)
+                local knob = create("Frame", { Position = value and UDim2.new(1, -21, 0, 3) or UDim2.fromOffset(3, 3), Size = UDim2.fromOffset(18, 18), BackgroundColor3 = Theme.Text, BorderSizePixel = 0 }, track)
                 corner(knob, 10)
 
                 local function setValue(newValue)
-                    if isLocked then return end -- หากถูกล็อก จะไม่ยอมให้เปลี่ยนค่า
                     value = newValue == true
                     createRipple(row)
                     tween(track, 0.25, { BackgroundColor3 = value and Theme.Green or Theme.Border })
                     tween(knob, 0.25, { Position = value and UDim2.new(1, -21, 0, 3) or UDim2.fromOffset(3, 3) })
                     if options.Callback then pcall(options.Callback, value) end
                 end
-
                 toggleMethods.Set = setValue
                 toggleMethods.Get = function() return value end
-                
-                row.Activated:Connect(function()
-                    if not isLocked then
-                        setValue(not value)
+                row.Activated:Connect(function() setValue(not value) end)
+            end)
+            return toggleMethods
+        end
+
+        -- 3. Slider
+        function tabObj:CreateSlider(options)
+            options = options or {}
+            local min, max, value = options.Min or 0, options.Max or 100, math.clamp(options.Default or 0, options.Min or 0, options.Max or 100)
+            task.spawn(function()
+                while not tabObj._Page do task.wait() end
+                local card = create("Frame", { Size = UDim2.new(1, 0, 0, 70), BackgroundColor3 = Theme.Card, BorderSizePixel = 0, ClipsDescendants = true }, tabObj._Page)
+                corner(card, 14)
+                stroke(card, Theme.AccentGlow, 0.5, 1.2)
+                label(card, options.Name or "Slider", 13, Theme.Text, Enum.Font.GothamMedium).Position = UDim2.fromOffset(14, 10)
+                local valLabel = label(card, tostring(value), 13, Theme.Green, Enum.Font.GothamBold)
+                valLabel.Position = UDim2.new(1, -60, 0, 10)
+                valLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+                local bar = create("Frame", { Position = UDim2.new(0, 14, 0, 45), Size = UDim2.new(1, -28, 0, 8), BackgroundColor3 = Theme.Border, BorderSizePixel = 0 }, card)
+                corner(bar, 4)
+                local fill = create("Frame", { Size = UDim2.new((value-min)/(max-min), 0, 1, 0), BackgroundColor3 = Theme.Green, BorderSizePixel = 0 }, bar)
+                corner(fill, 4)
+
+                local function setValue(v)
+                    value = math.clamp(v, min, max)
+                    valLabel.Text = tostring(math.floor(value))
+                    tween(fill, 0.1, { Size = UDim2.new((value-min)/(max-min), 0, 1, 0) })
+                    if options.Callback then pcall(options.Callback, value) end
+                end
+
+                bar.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        local conn
+                        conn = UserInputService.InputChanged:Connect(function(i)
+                            if i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch then
+                                local relX = math.clamp((i.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
+                                setValue(min + (max - min) * relX)
+                            end
+                        end)
+                        UserInputService.InputEnded:Wait()
+                        conn:Disconnect()
                     end
                 end)
             end)
+        end
 
-            return toggleMethods
+        -- 4. Dropdown
+        function tabObj:CreateDropdown(options)
+            options = options or {}
+            local items = options.Items or {}
+            local selected = options.Default or items[1] or ""
+            task.spawn(function()
+                while not tabObj._Page do task.wait() end
+                local isOpen = false
+                local dropFrame = create("Frame", { Size = UDim2.new(1, 0, 0, 48), BackgroundColor3 = Theme.Card, ClipsDescendants = true }, tabObj._Page)
+                corner(dropFrame, 14)
+                stroke(dropFrame, Theme.AccentGlow, 0.5, 1.2)
+
+                local titleLbl = label(dropFrame, (options.Name or "Dropdown") .. ": " .. tostring(selected), 13, Theme.Text, Enum.Font.GothamMedium)
+                titleLbl.Position = UDim2.fromOffset(14, 12)
+
+                local dropBtn = create("TextButton", { Size = UDim2.new(1, 0, 0, 48), BackgroundTransparency = 1, Text = "" }, dropFrame)
+                
+                dropBtn.Activated:Connect(function()
+                    isOpen = not isOpen
+                    createRipple(dropFrame)
+                    tween(dropFrame, 0.25, { Size = UDim2.new(1, 0, 0, isOpen and (48 + #items * 38) or 48) })
+                end)
+            end)
+        end
+
+        -- 5. Input
+        function tabObj:CreateInput(options)
+            options = options or {}
+            task.spawn(function()
+                while not tabObj._Page do task.wait() end
+                local card = create("Frame", { Size = UDim2.new(1, 0, 0, 64), BackgroundColor3 = Theme.Card }, tabObj._Page)
+                corner(card, 14)
+                stroke(card, Theme.AccentGlow, 0.5, 1.2)
+                label(card, options.Name or "Input", 13, Theme.Text, Enum.Font.GothamMedium).Position = UDim2.fromOffset(14, 8)
+
+                local textBoxBg = create("Frame", { Position = UDim2.new(0, 14, 0, 30), Size = UDim2.new(1, -28, 0, 26), BackgroundColor3 = Theme.Background }, card)
+                corner(textBoxBg, 8)
+
+                local textBox = create("TextBox", { Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = options.Default or "", PlaceholderText = options.Placeholder or "Type here...", TextColor3 = Theme.Text, TextSize, Font = Enum.Font.Gotham }, textBoxBg)
+                textBox.FocusLost:Connect(function(enterPressed)
+                    if options.Callback then pcall(options.Callback, textBox.Text) end
+                end)
+            end)
+        end
+
+        -- 6. Text / Label
+        function tabObj:CreateText(textString)
+            task.spawn(function()
+                while not tabObj._Page do task.wait() end
+                label(tabObj._Page, textString or "Text Info", 12, Theme.Muted, Enum.Font.Gotham)
+            end)
         end
 
         if mainUIBuilt then window:_RealCreateTab(tabName, iconText, tabObj) else table.insert(pendingTabs, { TabName = tabName, IconText = iconText, TabObj = tabObj }) end
