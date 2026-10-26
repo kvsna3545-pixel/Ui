@@ -10,18 +10,14 @@ local UserInputService = game:GetService("UserInputService")
 local VoidUI = {}
 
 local Theme = {
-    Background = Color3.fromRGB(10, 8, 18),
-    Sidebar = Color3.fromRGB(16, 12, 29),
-    Card = Color3.fromRGB(25, 19, 42),
-    Hover = Color3.fromRGB(44, 29, 69),
-
-    Accent = Color3.fromRGB(183, 104, 255),
-    AccentLight = Color3.fromRGB(220, 170, 255),
-    AccentPink = Color3.fromRGB(255, 105, 210),
-
-    Text = Color3.fromRGB(248, 245, 255),
-    Muted = Color3.fromRGB(166, 154, 193),
-    Border = Color3.fromRGB(73, 48, 105),
+    Background = Color3.fromRGB(13, 12, 22),
+    Sidebar = Color3.fromRGB(18, 16, 30),
+    Card = Color3.fromRGB(26, 23, 42),
+    Hover = Color3.fromRGB(39, 33, 59),
+    Accent = Color3.fromRGB(165, 100, 255),
+    Text = Color3.fromRGB(245, 242, 255),
+    Muted = Color3.fromRGB(155, 148, 180),
+    Border = Color3.fromRGB(54, 45, 75),
     Green = Color3.fromRGB(100, 235, 170),
 }
 
@@ -112,6 +108,103 @@ function VoidUI:CreateWindow(options)
     corner(main, 18)
     stroke(main, Theme.Accent, 0.45)
 
+-- KEY SYSTEM
+local correctKey = options.Key or "VOID-2026"
+main.Visible = false
+
+local keyFrame = create("Frame", {
+    Name = "KeySystem",
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    Position = UDim2.fromScale(0.5, 0.5),
+    Size = UDim2.fromOffset(320, 210),
+    BackgroundColor3 = Theme.Background,
+    BorderSizePixel = 0,
+    ZIndex = 50,
+}, gui)
+
+corner(keyFrame, 16)
+stroke(keyFrame, Theme.Accent, 0.2)
+
+local keyTitle = create("TextLabel", {
+    Position = UDim2.fromOffset(15, 15),
+    Size = UDim2.new(1, -30, 0, 30),
+    BackgroundTransparency = 1,
+    Text = "VOID UI | KEY SYSTEM",
+    TextColor3 = Theme.AccentLight,
+    Font = Enum.Font.GothamBold,
+    TextSize = 17,
+    ZIndex = 51,
+}, keyFrame)
+
+local keyBox = create("TextBox", {
+    Position = UDim2.fromOffset(20, 65),
+    Size = UDim2.new(1, -40, 0, 40),
+    BackgroundColor3 = Theme.Card,
+    Text = "",
+    PlaceholderText = "Enter your key...",
+    PlaceholderColor3 = Theme.Muted,
+    TextColor3 = Theme.Text,
+    Font = Enum.Font.Gotham,
+    TextSize = 14,
+    ClearTextOnFocus = false,
+    ZIndex = 51,
+}, keyFrame)
+
+corner(keyBox, 9)
+stroke(keyBox, Theme.Border, 0.2)
+
+local keyStatus = create("TextLabel", {
+    Position = UDim2.fromOffset(15, 110),
+    Size = UDim2.new(1, -30, 0, 22),
+    BackgroundTransparency = 1,
+    Text = "Enter the key to continue",
+    TextColor3 = Theme.Muted,
+    Font = Enum.Font.Gotham,
+    TextSize = 11,
+    ZIndex = 51,
+}, keyFrame)
+
+local keyButton = create("TextButton", {
+    Position = UDim2.fromOffset(20, 145),
+    Size = UDim2.new(1, -40, 0, 42),
+    BackgroundColor3 = Theme.Accent,
+    Text = "UNLOCK",
+    TextColor3 = Theme.Text,
+    Font = Enum.Font.GothamBold,
+    TextSize = 14,
+    AutoButtonColor = true,
+    ZIndex = 51,
+}, keyFrame)
+
+corner(keyButton, 9)
+
+local function checkKey()
+    if keyBox.Text == correctKey then
+        keyStatus.Text = "Access granted!"
+        keyStatus.TextColor3 = Theme.Green
+
+        task.wait(0.25)
+
+        if gui.Parent then
+            main.Visible = true
+            keyFrame:Destroy()
+        end
+    else
+        keyStatus.Text = "Invalid key. Try again."
+        keyStatus.TextColor3 = Color3.fromRGB(255, 90, 110)
+        keyBox.Text = ""
+    end
+end
+
+keyButton.Activated:Connect(checkKey)
+
+keyBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        checkKey()
+    end
+end)
+
+
     local constraint = create("UISizeConstraint", {
         MinSize = Vector2.new(290, 300),
         MaxSize = Vector2.new(850, 650),
@@ -173,7 +266,7 @@ function VoidUI:CreateWindow(options)
         Position = UDim2.new(1, -15, 0.5, 0),
         Size = UDim2.fromOffset(32, 32),
         BackgroundColor3 = Theme.Card,
-        Text = "X",
+        Text = "×",
         TextSize = 24,
         TextColor3 = Theme.Text,
         Font = Enum.Font.Gotham,
@@ -264,22 +357,6 @@ function VoidUI:CreateWindow(options)
 
         corner(toast, 12)
         stroke(toast, Theme.Accent, 0.25)
-        local topGlow = create("Frame", {
-    Name = "NebulaGlow",
-    Position = UDim2.new(0, 0, 0, 0),
-    Size = UDim2.new(1, 0, 0, 3),
-    BackgroundColor3 = Theme.Accent,
-    BorderSizePixel = 0,
-    ZIndex = 10,
-}, main)
-
-create("UIGradient", {
-    Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Theme.Accent),
-        ColorSequenceKeypoint.new(0.5, Theme.AccentPink),
-        ColorSequenceKeypoint.new(1, Theme.AccentLight),
-    }),
-}, topGlow)
 
         local t = label(toast, titleText or "Notification",
             14, Theme.Accent, Enum.Font.GothamBold)
