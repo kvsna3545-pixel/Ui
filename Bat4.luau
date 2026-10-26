@@ -10,14 +10,18 @@ local UserInputService = game:GetService("UserInputService")
 local VoidUI = {}
 
 local Theme = {
-    Background = Color3.fromRGB(13, 12, 22),
-    Sidebar = Color3.fromRGB(18, 16, 30),
-    Card = Color3.fromRGB(26, 23, 42),
-    Hover = Color3.fromRGB(39, 33, 59),
-    Accent = Color3.fromRGB(165, 100, 255),
-    Text = Color3.fromRGB(245, 242, 255),
-    Muted = Color3.fromRGB(155, 148, 180),
-    Border = Color3.fromRGB(54, 45, 75),
+    Background = Color3.fromRGB(10, 8, 18),
+    Sidebar = Color3.fromRGB(16, 12, 29),
+    Card = Color3.fromRGB(25, 19, 42),
+    Hover = Color3.fromRGB(44, 29, 69),
+
+    Accent = Color3.fromRGB(183, 104, 255),
+    AccentLight = Color3.fromRGB(220, 170, 255),
+    AccentPink = Color3.fromRGB(255, 105, 210),
+
+    Text = Color3.fromRGB(248, 245, 255),
+    Muted = Color3.fromRGB(166, 154, 193),
+    Border = Color3.fromRGB(73, 48, 105),
     Green = Color3.fromRGB(100, 235, 170),
 }
 
@@ -169,7 +173,7 @@ function VoidUI:CreateWindow(options)
         Position = UDim2.new(1, -15, 0.5, 0),
         Size = UDim2.fromOffset(32, 32),
         BackgroundColor3 = Theme.Card,
-        Text = "×",
+        Text = "X",
         TextSize = 24,
         TextColor3 = Theme.Text,
         Font = Enum.Font.Gotham,
@@ -260,6 +264,22 @@ function VoidUI:CreateWindow(options)
 
         corner(toast, 12)
         stroke(toast, Theme.Accent, 0.25)
+        local topGlow = create("Frame", {
+    Name = "NebulaGlow",
+    Position = UDim2.new(0, 0, 0, 0),
+    Size = UDim2.new(1, 0, 0, 3),
+    BackgroundColor3 = Theme.Accent,
+    BorderSizePixel = 0,
+    ZIndex = 10,
+}, main)
+
+create("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Accent),
+        ColorSequenceKeypoint.new(0.5, Theme.AccentPink),
+        ColorSequenceKeypoint.new(1, Theme.AccentLight),
+    }),
+}, topGlow)
 
         local t = label(toast, titleText or "Notification",
             14, Theme.Accent, Enum.Font.GothamBold)
