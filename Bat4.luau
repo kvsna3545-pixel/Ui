@@ -19,6 +19,7 @@ local Theme = {
     Muted = Color3.fromRGB(155, 148, 180),
     Border = Color3.fromRGB(54, 45, 75),
     Green = Color3.fromRGB(100, 235, 170),
+    AccentLight = Color3.fromRGB(220, 170, 255),
 }
 
 local function create(class, props, parent)
@@ -107,103 +108,6 @@ function VoidUI:CreateWindow(options)
     main.Size = UDim2.fromOffset(660, 430)
     corner(main, 18)
     stroke(main, Theme.Accent, 0.45)
-
--- KEY SYSTEM
-local correctKey = options.Key or "VOID-2026"
-main.Visible = false
-
-local keyFrame = create("Frame", {
-    Name = "KeySystem",
-    AnchorPoint = Vector2.new(0.5, 0.5),
-    Position = UDim2.fromScale(0.5, 0.5),
-    Size = UDim2.fromOffset(320, 210),
-    BackgroundColor3 = Theme.Background,
-    BorderSizePixel = 0,
-    ZIndex = 50,
-}, gui)
-
-corner(keyFrame, 16)
-stroke(keyFrame, Theme.Accent, 0.2)
-
-local keyTitle = create("TextLabel", {
-    Position = UDim2.fromOffset(15, 15),
-    Size = UDim2.new(1, -30, 0, 30),
-    BackgroundTransparency = 1,
-    Text = "VOID UI | KEY SYSTEM",
-    TextColor3 = Theme.AccentLight,
-    Font = Enum.Font.GothamBold,
-    TextSize = 17,
-    ZIndex = 51,
-}, keyFrame)
-
-local keyBox = create("TextBox", {
-    Position = UDim2.fromOffset(20, 65),
-    Size = UDim2.new(1, -40, 0, 40),
-    BackgroundColor3 = Theme.Card,
-    Text = "",
-    PlaceholderText = "Enter your key...",
-    PlaceholderColor3 = Theme.Muted,
-    TextColor3 = Theme.Text,
-    Font = Enum.Font.Gotham,
-    TextSize = 14,
-    ClearTextOnFocus = false,
-    ZIndex = 51,
-}, keyFrame)
-
-corner(keyBox, 9)
-stroke(keyBox, Theme.Border, 0.2)
-
-local keyStatus = create("TextLabel", {
-    Position = UDim2.fromOffset(15, 110),
-    Size = UDim2.new(1, -30, 0, 22),
-    BackgroundTransparency = 1,
-    Text = "Enter the key to continue",
-    TextColor3 = Theme.Muted,
-    Font = Enum.Font.Gotham,
-    TextSize = 11,
-    ZIndex = 51,
-}, keyFrame)
-
-local keyButton = create("TextButton", {
-    Position = UDim2.fromOffset(20, 145),
-    Size = UDim2.new(1, -40, 0, 42),
-    BackgroundColor3 = Theme.Accent,
-    Text = "UNLOCK",
-    TextColor3 = Theme.Text,
-    Font = Enum.Font.GothamBold,
-    TextSize = 14,
-    AutoButtonColor = true,
-    ZIndex = 51,
-}, keyFrame)
-
-corner(keyButton, 9)
-
-local function checkKey()
-    if keyBox.Text == correctKey then
-        keyStatus.Text = "Access granted!"
-        keyStatus.TextColor3 = Theme.Green
-
-        task.wait(0.25)
-
-        if gui.Parent then
-            main.Visible = true
-            keyFrame:Destroy()
-        end
-    else
-        keyStatus.Text = "Invalid key. Try again."
-        keyStatus.TextColor3 = Color3.fromRGB(255, 90, 110)
-        keyBox.Text = ""
-    end
-end
-
-keyButton.Activated:Connect(checkKey)
-
-keyBox.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        checkKey()
-    end
-end)
-
 
     local constraint = create("UISizeConstraint", {
         MinSize = Vector2.new(290, 300),
