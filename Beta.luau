@@ -1,4 +1,4 @@
--- VOID UI | NEBULA EDITION (CLEAN CHRISTMAS & ANIMATIONS EDITION)
+-- VOID UI | NEBULA EDITION (CHRISTMAS, RIPPLE & MOBILE SUPPORT EDITION)
 -- Original Roblox UI Library
 
 local TweenService = game:GetService("TweenService")
@@ -79,6 +79,35 @@ local function label(parent, text, size, color, font)
     }, parent)
 end
 
+-- ✨ เอฟเฟกต์วงกลมแผ่ขยาย (Ripple Effect)
+local function createRipple(parent)
+    task.spawn(function()
+        local ripple = create("Frame", {
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = UDim2.fromScale(0.5, 0.5),
+            Size = UDim2.fromOffset(0, 0),
+            BackgroundColor3 = Theme.Green,
+            BackgroundTransparency = 0.4,
+            BorderSizePixel = 0,
+            ZIndex = 50,
+        }, parent)
+        corner(ripple, 100)
+
+        local maxSize = math.max(parent.AbsoluteSize.X, parent.AbsoluteSize.Y) * 1.8
+        
+        local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local tw = TweenService:Create(ripple, tweenInfo, {
+            Size = UDim2.fromOffset(maxSize, maxSize),
+            BackgroundTransparency = 1
+        })
+        
+        tw:Play()
+        tw.Completed:Connect(function()
+            ripple:Destroy()
+        end)
+    end)
+end
+
 local function safeReadfile(fileName)
     if typeof(readfile) == "function" then
         local success, result = pcall(readfile, fileName)
@@ -110,6 +139,7 @@ function VoidUI:CreateWindow(options)
     local title = options.Title or "VOID UI"
     local subtitle = options.Subtitle or "CHRISTMAS EDITION 🎄"
     local logoImage = options.LogoImage or ""
+    local toggleKeybind = options.ToggleKeybind ~= nil and options.ToggleKeybind or Enum.KeyCode.RightShift
     local keySystem = options.KeySystem or false
     local keySettings = options.KeySettings or {}
 
@@ -174,6 +204,8 @@ function VoidUI:CreateWindow(options)
     local sidebar = nil
     local content = nil
     local bgImageLabel = nil
+    local floatingLogo = nil
+    local mobileToggleBtn = nil
     local tabs = {}
     local activeTab = nil
     local viewportConn = nil
@@ -241,6 +273,83 @@ function VoidUI:CreateWindow(options)
         if camera then
             viewportConn = camera:GetPropertyChangedSignal("ViewportSize"):Connect(resize)
         end
+
+        -- Floating Logo Button (ปุ่มโลโก้ตอนปิด UI)
+        floatingLogo = create("TextButton", {
+            Name = "FloatingLogo",
+            Position = UDim2.new(0, 20, 0, 20),
+            Size = UDim2.fromOffset(45, 45),
+            BackgroundColor3 = Theme.Card,
+            Text = "",
+            AutoButtonColor = false,
+            Visible = false,
+            ZIndex = 100,
+            ClipsDescendants = true,
+        }, gui)
+        corner(floatingLogo, 14)
+        stroke(floatingLogo, Theme.Green, 0.2, 1.5)
+
+        if logoImage ~= "" then
+            local floatImg = create("ImageLabel", {
+                Size = UDim2.fromScale(1, 1),
+                BackgroundTransparency = 1,
+                ScaleType = Enum.ScaleType.Crop,
+                ZIndex = 101,
+            }, floatingLogo)
+            corner(floatImg, 14)
+            if string.match(logoImage, "^%d+$") then
+                floatImg.Image = "rbxassetid://" .. logoImage
+            else
+                floatImg.Image = logoImage
+            end
+        else
+            create("TextLabel", {
+                BackgroundTransparency = 1,
+                Size = UDim2.fromScale(1, 1),
+                Text = "🎄",
+                TextColor3 = Theme.Text,
+                Font = Enum.Font.GothamBlack,
+                TextSize = 20,
+                TextXAlignment = Enum.TextXAlignment.Center,
+                ZIndex = 101,
+            }, floatingLogo)
+        end
+
+        -- ✨ Mobile Toggle Button (ปุ่มเปิด-ปิด UI สำหรับมือถือ มุมขวาบน)
+        mobileToggleBtn = create("TextButton", {
+            Name = "MobileToggle",
+            AnchorPoint = Vector2.new(1, 0),
+            Position = UDim2.new(1, -20, 0, 20),
+            Size = UDim2.fromOffset(44, 44),
+            BackgroundColor3 = Theme.Card,
+            Text = "≡",
+            TextSize = 24,
+            TextColor3 = Theme.Green,
+            Font = Enum.Font.GothamBold,
+            AutoButtonColor = false,
+            ZIndex = 100,
+            ClipsDescendants = true,
+        }, gui)
+        corner(mobileToggleBtn, 12)
+        stroke(mobileToggleBtn, Theme.Green, 0.2, 1.5)
+
+        local function toggleUI()
+            isVisible = not isVisible
+            mainFrame.Visible = isVisible
+            if floatingLogo then
+                floatingLogo.Visible = not isVisible
+            end
+        end
+
+        floatingLogo.Activated:Connect(function()
+            createRipple(floatingLogo)
+            toggleUI()
+        end)
+
+        mobileToggleBtn.Activated:Connect(function()
+            createRipple(mobileToggleBtn)
+            toggleUI()
+        end)
 
         -- Top Bar
         local top = create("Frame", {
@@ -317,6 +426,7 @@ function VoidUI:CreateWindow(options)
             Font = Enum.Font.Gotham,
             AutoButtonColor = false,
             ZIndex = 3,
+            ClipsDescendants = true,
         }, top)
         corner(close, 10)
         stroke(close, Theme.Border, 0.4)
@@ -329,7 +439,10 @@ function VoidUI:CreateWindow(options)
         end)
 
         close.Activated:Connect(function()
+            createRipple(close)
             if viewportConn then viewportConn:Disconnect() end
+            if floatingLogo then floatingLogo:Destroy() end
+            if mobileToggleBtn then mobileToggleBtn:Destroy() end
             tween(mainFrame, 0.3, { Size = UDim2.fromOffset(0, 0), BackgroundTransparency = 1 }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
             task.wait(0.3)
             gui:Destroy()
@@ -347,6 +460,7 @@ function VoidUI:CreateWindow(options)
             Font = Enum.Font.Gotham,
             AutoButtonColor = false,
             ZIndex = 3,
+            ClipsDescendants = true,
         }, top)
         corner(minimize, 10)
         stroke(minimize, Theme.Border, 0.4)
@@ -359,6 +473,7 @@ function VoidUI:CreateWindow(options)
         end)
 
         minimize.Activated:Connect(function()
+            createRipple(minimize)
             isMinimized = not isMinimized
             if isMinimized then
                 sidebar.Visible = false
@@ -371,7 +486,7 @@ function VoidUI:CreateWindow(options)
             end
         end)
 
-        -- Drag Window
+        -- Drag Window (รองรับทั้งเม้าส์และนิ้วทัชบนมือถือ)
         local dragging = false
         local dragStart = Vector2.zero
         local startPosition = UDim2.new()
@@ -438,13 +553,13 @@ function VoidUI:CreateWindow(options)
         end
         pendingTabs = {}
 
-        -- RightShift Toggle UI Visibility
-        UserInputService.InputBegan:Connect(function(input, gameProcessed)
-            if input.KeyCode == Enum.KeyCode.RightShift then
-                isVisible = not isVisible
-                mainFrame.Visible = isVisible
-            end
-        end)
+        if toggleKeybind then
+            UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                if input.KeyCode == toggleKeybind then
+                    toggleUI()
+                end
+            end)
+        end
     end
 
     function window:Notify(titleText, message, duration)
@@ -468,6 +583,7 @@ function VoidUI:CreateWindow(options)
             BackgroundColor3 = Theme.Sidebar,
             Text = "",
             AutoButtonColor = false,
+            ClipsDescendants = true,
         }, sidebar)
         corner(nav, 10)
 
@@ -510,6 +626,7 @@ function VoidUI:CreateWindow(options)
         }, page)
 
         local function activate()
+            createRipple(nav)
             for _, item in ipairs(tabs) do
                 item.page.Visible = false
                 tween(item.nav, 0.2, { BackgroundColor3 = Theme.Sidebar })
@@ -575,6 +692,7 @@ function VoidUI:CreateWindow(options)
                     BackgroundColor3 = Theme.Card,
                     Text = "",
                     AutoButtonColor = false,
+                    ClipsDescendants = true,
                 }, tabObj._Page)
 
                 corner(button, 12)
@@ -593,6 +711,7 @@ function VoidUI:CreateWindow(options)
                 end)
 
                 button.Activated:Connect(function()
+                    createRipple(button)
                     tween(button, 0.1, { BackgroundColor3 = Theme.Accent })
                     task.delay(0.12, function()
                         if button and button.Parent then
@@ -620,6 +739,7 @@ function VoidUI:CreateWindow(options)
                     BackgroundColor3 = Theme.Card,
                     Text = "",
                     AutoButtonColor = false,
+                    ClipsDescendants = true,
                 }, tabObj._Page)
                 corner(row, 12)
                 stroke(row, Theme.Border, 0.4)
@@ -648,6 +768,7 @@ function VoidUI:CreateWindow(options)
 
                 local function setValue(newValue)
                     value = newValue == true
+                    createRipple(row)
                     tween(track, 0.25, { BackgroundColor3 = value and Theme.Green or Theme.Border })
                     tween(knob, 0.25, { Position = value and UDim2.new(1, -21, 0, 3) or UDim2.fromOffset(3, 3) }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
@@ -688,6 +809,7 @@ function VoidUI:CreateWindow(options)
                     Size = UDim2.new(1, 0, 0, 72),
                     BackgroundColor3 = Theme.Card,
                     BorderSizePixel = 0,
+                    ClipsDescendants = true,
                 }, tabObj._Page)
                 corner(card, 12)
                 stroke(card, Theme.Border, 0.4)
@@ -881,6 +1003,7 @@ function VoidUI:CreateWindow(options)
             TextColor3 = Theme.Text,
             Font = Enum.Font.Gotham,
             AutoButtonColor = false,
+            ClipsDescendants = true,
         }, top)
         corner(close, 8)
         stroke(close, Theme.Border, 0.4)
@@ -893,6 +1016,7 @@ function VoidUI:CreateWindow(options)
         end)
 
         close.Activated:Connect(function()
+            createRipple(close)
             tween(keyMain, 0.3, { Size = UDim2.fromOffset(0, 0), BackgroundTransparency = 1 }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
             task.wait(0.3)
             if gui and gui.Parent then
@@ -933,6 +1057,7 @@ function VoidUI:CreateWindow(options)
             TextColor3 = Theme.Text,
             Font = Enum.Font.GothamBold,
             AutoButtonColor = false,
+            ClipsDescendants = true,
         }, keyMain)
         corner(submitBtn, 12)
 
@@ -956,6 +1081,7 @@ function VoidUI:CreateWindow(options)
                 TextColor3 = Theme.Text,
                 Font = Enum.Font.GothamBold,
                 AutoButtonColor = false,
+                ClipsDescendants = true,
             }, keyMain)
             corner(getKeyBtn, 12)
             stroke(getKeyBtn, Theme.Border, 0.4)
@@ -968,6 +1094,7 @@ function VoidUI:CreateWindow(options)
             end)
 
             getKeyBtn.Activated:Connect(function()
+                createRipple(getKeyBtn)
                 local success = safeSetClipboard(getLink)
                 if success then
                     notify("Clipboard", "Get Key link copied!", 3)
@@ -983,6 +1110,7 @@ function VoidUI:CreateWindow(options)
         noteLab.TextXAlignment = Enum.TextXAlignment.Center
 
         submitBtn.Activated:Connect(function()
+            createRipple(submitBtn)
             local enteredKey = textBox.Text
             if enteredKey == "" then
                 notify("Error", "Please enter a key first.", 3)
