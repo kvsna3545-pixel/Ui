@@ -1,1 +1,1868 @@
+-- Christmas UI Library - Expanded Core Edition
+-- Part 1/8
+-- Roblox Studio ModuleScript
 
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+assert(LocalPlayer, "Christmas UI Library must be required from a LocalScript")
+
+local Theme = {
+    Main = Color3.fromRGB(20, 20, 25),
+    Secondary = Color3.fromRGB(30, 30, 38),
+    Element = Color3.fromRGB(42, 42, 52),
+    Stroke = Color3.fromRGB(60, 60, 72),
+    Red = Color3.fromRGB(196, 30, 58),
+    RedDark = Color3.fromRGB(150, 20, 40),
+    Green = Color3.fromRGB(34, 139, 34),
+    GreenDark = Color3.fromRGB(20, 100, 20),
+    Gold = Color3.fromRGB(255, 200, 80),
+    White = Color3.fromRGB(240, 245, 255),
+    Text = Color3.fromRGB(240, 240, 245),
+    SubText = Color3.fromRGB(160, 160, 175),
+}
+
+local Font = Enum.Font.GothamMedium
+local FontBold = Enum.Font.GothamBold
+
+local Library = {}
+Library.__index = Library
+Library.Theme = Theme
+
+local function New(className, props)
+    local object = Instance.new(className)
+
+    for key, value in pairs(props or {}) do
+        object[key] = value
+    end
+
+    return object
+end
+
+local function Corner(parent, radius)
+    return New("UICorner", {
+        CornerRadius = UDim.new(0, radius or 8),
+        Parent = parent,
+    })
+end
+
+local function Stroke(parent, color, thickness)
+    return New("UIStroke", {
+        Color = color or Theme.Stroke,
+        Thickness = thickness or 1,
+        Parent = parent,
+    })
+end
+
+local function Padding(parent, amount)
+    return New("UIPadding", {
+        PaddingTop = UDim.new(0, amount),
+        PaddingBottom = UDim.new(0, amount),
+        PaddingLeft = UDim.new(0, amount),
+        PaddingRight = UDim.new(0, amount),
+        Parent = parent,
+    })
+end
+
+local function Tween(object, duration, properties)
+    if not object or not object.Parent then
+        return
+    end
+
+    local tween = TweenService:Create(
+        object,
+        TweenInfo.new(
+            duration or 0.2,
+            Enum.EasingStyle.Quart,
+            Enum.EasingDirection.Out
+        ),
+        properties
+    )
+
+    tween:Play()
+    return tween
+end
+
+local function MakeLabel(
+    parent,
+    text,
+    size,
+    position,
+    textSize,
+    color,
+    font
+)
+    return New("TextLabel", {
+        Parent = parent,
+        Text = tostring(text or ""),
+        Size = size,
+        Position = position or UDim2.new(),
+        BackgroundTransparency = 1,
+        Font = font or Font,
+        TextSize = textSize or 12,
+        TextColor3 = color or Theme.Text,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextWrapped = true,
+    })
+end
+
+local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local oldGui = playerGui:FindFirstChild("ChristmasUI")
+if oldGui then
+    oldGui:Destroy()
+end
+
+local ScreenGui = New("ScreenGui", {
+    Name = "ChristmasUI",
+    ResetOnSpawn = false,
+    ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+    IgnoreGuiInset = false,
+    DisplayOrder = 50,
+    Parent = playerGui,
+})
+
+Library.ScreenGui = ScreenGui
+
+local DropdownOverlay = New("TextButton", {
+    Name = "DropdownOverlay",
+    Parent = ScreenGui,
+    Size = UDim2.fromScale(1, 1),
+    BackgroundTransparency = 1,
+    Text = "",
+    Visible = false,
+    ZIndex = 100,
+    AutoButtonColor = false,
+})
+
+local activeDropdownClose
+
+DropdownOverlay.Activated:Connect(function()
+    if activeDropdownClose then
+        activeDropdownClose()
+    end
+end)
+
+local NotifContainer = New("Frame", {
+    Name = "Notifications",
+    Parent = ScreenGui,
+    AnchorPoint = Vector2.new(1, 1),
+    Position = UDim2.new(1, -16, 1, -16),
+    Size = UDim2.fromOffset(320, 400),
+    BackgroundTransparency = 1,
+    ZIndex = 200,
+})
+
+New("UIListLayout", {
+    Parent = NotifContainer,
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    VerticalAlignment = Enum.VerticalAlignment.Bottom,
+    Padding = UDim.new(0, 8),
+})
+
+function Library.Notify(title, message, duration)
+    duration = math.max(0, tonumber(duration) or 4)
+
+    local frame = New("Frame", {
+        Parent = NotifContainer,
+        Size = UDim2.fromOffset(320, 70),
+        BackgroundColor3 = Theme.Secondary,
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        ZIndex = 201,
+    })
+
+    Corner(frame, 10)
+
+    local outline = Stroke(frame, Theme.Green, 1.5)
+    outline.Transparency = 1
+
+    local icon = New("TextLabel", {
+        Parent = frame,
+        Size = UDim2.fromOffset(40, 40),
+        Position = UDim2.new(0, 12, 0.5, -20),
+        BackgroundColor3 = Theme.Red,
+        Text = "🎄",
+        TextSize = 20,
+        Font = FontBold,
+        TextColor3 = Theme.White,
+        ZIndex = 202,
+    })
+
+    Corner(icon, 10)
+
+    MakeLabel(
+        frame,
+        title or "Christmas UI",
+        UDim2.new(1, -75, 0, 24),
+        UDim2.new(0, 62, 0, 10),
+        14,
+        Theme.Gold,
+        FontBold
+    ).ZIndex = 202
+
+    MakeLabel(
+        frame,
+        message or "",
+        UDim2.new(1, -75, 0, 28),
+        UDim2.new(0, 62, 0, 34),
+        11,
+        Theme.Text,
+        Font
+    ).ZIndex = 202
+
+    Tween(frame, 0.25, {
+        BackgroundTransparency = 0,
+    })
+
+    Tween(outline, 0.25, {
+        Transparency = 0,
+    })
+
+    task.delay(duration, function()
+        if frame and frame.Parent then
+            Tween(frame, 0.2, {
+                BackgroundTransparency = 1,
+            })
+
+            Tween(outline, 0.2, {
+                Transparency = 1,
+            })
+
+            task.wait(0.25)
+
+            if frame and frame.Parent then
+                frame:Destroy()
+            end
+        end
+    end)
+
+    return frame
+end
+
+-- ส่วนที่ 2 จะต่อจากตรงนี้
+-- =========================================================
+-- PART 2/8: WINDOW + SIDEBAR + TAB SYSTEM
+-- =========================================================
+
+local WindowMethods = {}
+WindowMethods.__index = WindowMethods
+
+local TabMethods = {}
+TabMethods.__index = TabMethods
+
+local SectionMethods = {}
+SectionMethods.__index = SectionMethods
+
+function Library:CreateWindow(config)
+    config = config or {}
+
+    local window = setmetatable({}, WindowMethods)
+
+    window.Tabs = {}
+    window.ActiveTab = nil
+    window.Title = config.Title or "Christmas Hub"
+    window.Subtitle = config.Subtitle or "Winter Edition"
+    window.Destroyed = false
+
+    local Main = New("Frame", {
+        Name = "MainWindow",
+        Parent = ScreenGui,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.fromScale(0.5, 0.5),
+        Size = config.Size or UDim2.fromOffset(650, 430),
+        BackgroundColor3 = Theme.Main,
+        BorderSizePixel = 0,
+        ClipsDescendants = true,
+    })
+
+    Corner(Main, 12)
+    Stroke(Main, Theme.Stroke, 1)
+
+    window.Window = Main
+
+    local Header = New("Frame", {
+        Name = "Header",
+        Parent = Main,
+        Size = UDim2.new(1, 0, 0, 62),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+    })
+
+    local HeaderAccent = New("Frame", {
+        Parent = Header,
+        Size = UDim2.new(0, 4, 1, 0),
+        BackgroundColor3 = Theme.Red,
+        BorderSizePixel = 0,
+    })
+
+    Corner(HeaderAccent, 4)
+
+    MakeLabel(
+        Header,
+        "🎄  " .. window.Title,
+        UDim2.new(1, -120, 0, 28),
+        UDim2.new(0, 18, 0, 7),
+        17,
+        Theme.Gold,
+        FontBold
+    )
+
+    MakeLabel(
+        Header,
+        window.Subtitle,
+        UDim2.new(1, -120, 0, 18),
+        UDim2.new(0, 20, 0, 35),
+        10,
+        Theme.SubText,
+        Font
+    )
+
+    local CloseButton = New("TextButton", {
+        Name = "Close",
+        Parent = Header,
+        Size = UDim2.fromOffset(32, 32),
+        Position = UDim2.new(1, -44, 0, 15),
+        BackgroundColor3 = Theme.RedDark,
+        Text = "×",
+        TextColor3 = Theme.White,
+        Font = FontBold,
+        TextSize = 23,
+        AutoButtonColor = false,
+    })
+
+    Corner(CloseButton, 8)
+
+    CloseButton.Activated:Connect(function()
+        window:Destroy()
+    end)
+
+    local Sidebar = New("ScrollingFrame", {
+        Name = "Sidebar",
+        Parent = Main,
+        Position = UDim2.new(0, 0, 0, 62),
+        Size = UDim2.new(0, 155, 1, -62),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+        ScrollBarThickness = 3,
+        ScrollBarImageColor3 = Theme.Green,
+        CanvasSize = UDim2.new(),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    })
+
+    Padding(Sidebar, 10)
+
+    New("UIListLayout", {
+        Parent = Sidebar,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 7),
+    })
+
+    local Content = New("Frame", {
+        Name = "Content",
+        Parent = Main,
+        Position = UDim2.new(0, 155, 0, 62),
+        Size = UDim2.new(1, -155, 1, -62),
+        BackgroundColor3 = Theme.Main,
+        BorderSizePixel = 0,
+        ClipsDescendants = true,
+    })
+
+    window.Sidebar = Sidebar
+    window.Content = Content
+
+    -- Drag window with mouse or touch.
+    -- Excludes the close button.
+    local dragging = false
+    local dragStart
+    local startPosition
+    local dragInput
+
+    Header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+
+            dragging = true
+            dragStart = input.Position
+            startPosition = Main.Position
+            dragInput = input
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if not dragging then
+            return
+        end
+
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch then
+
+            local delta = input.Position - dragStart
+
+            Main.Position = UDim2.new(
+                startPosition.X.Scale,
+                startPosition.X.Offset + delta.X,
+                startPosition.Y.Scale,
+                startPosition.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    function window:CreateTab(name)
+        name = tostring(name or "Tab")
+
+        local tab = setmetatable({}, TabMethods)
+
+        tab.Name = name
+        tab.Sections = {}
+        tab.Elements = {}
+
+        tab.Button = New("TextButton", {
+            Name = "Tab_" .. name,
+            Parent = Sidebar,
+            Size = UDim2.new(1, 0, 0, 36),
+            BackgroundColor3 = Theme.Element,
+            BackgroundTransparency = 0.25,
+            Text = "  " .. name,
+            TextColor3 = Theme.SubText,
+            TextSize = 12,
+            Font = FontBold,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            AutoButtonColor = false,
+        })
+
+        Corner(tab.Button, 7)
+
+        tab.Page = New("ScrollingFrame", {
+            Name = "Page_" .. name,
+            Parent = Content,
+            Size = UDim2.fromScale(1, 1),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ScrollBarThickness = 4,
+            ScrollBarImageColor3 = Theme.Green,
+            CanvasSize = UDim2.new(),
+            AutomaticCanvasSize = Enum.AutomaticSize.Y,
+            Visible = false,
+        })
+
+        Padding(tab.Page, 12)
+
+        tab.Layout = New("UIListLayout", {
+            Parent = tab.Page,
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 10),
+        })
+
+        function tab:Select()
+            if window.Destroyed then
+                return
+            end
+
+            for _, other in ipairs(window.Tabs) do
+                other.Page.Visible = false
+
+                Tween(other.Button, 0.15, {
+                    BackgroundColor3 = Theme.Element,
+                    TextColor3 = Theme.SubText,
+                })
+            end
+
+            tab.Page.Visible = true
+            window.ActiveTab = tab
+
+            Tween(tab.Button, 0.15, {
+                BackgroundColor3 = Theme.GreenDark,
+                TextColor3 = Theme.White,
+            })
+        end
+
+        tab.Button.Activated:Connect(function()
+            tab:Select()
+        end)
+
+        table.insert(window.Tabs, tab)
+
+        if #window.Tabs == 1 then
+            tab:Select()
+        end
+
+        return tab
+    end
+
+    function window:Show()
+        if Main and Main.Parent then
+            Main.Visible = true
+        end
+    end
+
+    function window:Hide()
+        if Main and Main.Parent then
+            Main.Visible = false
+        end
+    end
+
+    function window:Toggle()
+        if Main and Main.Parent then
+            Main.Visible = not Main.Visible
+        end
+    end
+
+    function window:Destroy()
+        if window.Destroyed then
+            return
+        end
+
+        window.Destroyed = true
+
+        if Main and Main.Parent then
+            Main:Destroy()
+        end
+    end
+
+    return window
+end
+
+-- =========================================================
+-- PART 2 END
+-- ต่อส่วนที่ 3 เพื่อเพิ่ม Section + Label + Card
+-- =========================================================
+-- =========================================================
+-- PART 3/8: SECTION + LABEL + CARD
+-- =========================================================
+
+function TabMethods:AddSection(name)
+    local section = setmetatable({}, SectionMethods)
+
+    section.Name = tostring(name or "Section")
+    section.Tab = self
+
+    local Header = New("Frame", {
+        Name = "Section_" .. section.Name,
+        Parent = self.Page,
+        Size = UDim2.new(1, -4, 0, 34),
+        BackgroundTransparency = 1,
+    })
+
+    MakeLabel(
+        Header,
+        section.Name,
+        UDim2.new(1, -12, 1, 0),
+        UDim2.new(0, 2, 0, 0),
+        14,
+        Theme.Gold,
+        FontBold
+    )
+
+    New("Frame", {
+        Parent = Header,
+        Position = UDim2.new(0, 2, 1, -2),
+        Size = UDim2.new(0, 48, 0, 2),
+        BackgroundColor3 = Theme.Green,
+        BorderSizePixel = 0,
+    })
+
+    section.Header = Header
+
+    table.insert(self.Sections, section)
+
+    return section
+end
+
+function TabMethods:AddLabel(text)
+    local label = New("TextLabel", {
+        Name = "Label",
+        Parent = self.Page,
+        Size = UDim2.new(1, -4, 0, 28),
+        BackgroundTransparency = 1,
+        Text = tostring(text or ""),
+        TextColor3 = Theme.SubText,
+        TextSize = 12,
+        Font = Font,
+        TextWrapped = true,
+        TextXAlignment = Enum.TextXAlignment.Left,
+    })
+
+    table.insert(self.Elements, label)
+
+    return label
+end
+
+function TabMethods:AddCard(config)
+    config = config or {}
+
+    local card = New("Frame", {
+        Name = "Card",
+        Parent = self.Page,
+        Size = config.Size or UDim2.new(1, -4, 0, 90),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+    })
+
+    Corner(card, 10)
+    Stroke(card, Theme.Stroke, 1)
+    Padding(card, 12)
+
+    local title = MakeLabel(
+        card,
+        config.Title or "Card",
+        UDim2.new(1, -8, 0, 24),
+        UDim2.new(0, 0, 0, 0),
+        14,
+        Theme.Gold,
+        FontBold
+    )
+
+    local description = MakeLabel(
+        card,
+        config.Description or "",
+        UDim2.new(1, -8, 1, -30),
+        UDim2.new(0, 0, 0, 28),
+        11,
+        Theme.SubText,
+        Font
+    )
+
+    description.TextYAlignment = Enum.TextYAlignment.Top
+
+    local result = {
+        Frame = card,
+        Title = title,
+        Description = description,
+    }
+
+    function result:SetTitle(value)
+        title.Text = tostring(value or "")
+    end
+
+    function result:SetDescription(value)
+        description.Text = tostring(value or "")
+    end
+
+    function result:SetVisible(value)
+        card.Visible = value == true
+    end
+
+    table.insert(self.Elements, result)
+
+    return result
+end
+
+function SectionMethods:AddLabel(text)
+    return self.Tab:AddLabel(text)
+end
+
+function SectionMethods:AddCard(config)
+    return self.Tab:AddCard(config)
+end
+
+-- =========================================================
+-- PART 3 END
+-- =========================================================
+-- =========================================================
+-- PART 4/8: BUTTON + TOGGLE
+-- =========================================================
+
+function TabMethods:AddButton(config)
+    config = config or {}
+
+    local callback = config.Callback or function() end
+
+    local button = New("TextButton", {
+        Name = "Button",
+        Parent = self.Page,
+        Size = UDim2.new(1, -4, 0, 40),
+        BackgroundColor3 = Theme.GreenDark,
+        BorderSizePixel = 0,
+        Text = "",
+        AutoButtonColor = false,
+    })
+
+    Corner(button, 8)
+    Stroke(button, Theme.Green, 1)
+
+    local title = MakeLabel(
+        button,
+        config.Name or config.Title or "Button",
+        UDim2.new(1, -42, 1, 0),
+        UDim2.new(0, 12, 0, 0),
+        12,
+        Theme.White,
+        FontBold
+    )
+
+    local arrow = MakeLabel(
+        button,
+        "›",
+        UDim2.fromOffset(24, 32),
+        UDim2.new(1, -30, 0.5, -16),
+        24,
+        Theme.Gold,
+        FontBold
+    )
+
+    title.ZIndex = 2
+    arrow.ZIndex = 2
+
+    button.Activated:Connect(function()
+        Tween(button, 0.1, {
+            BackgroundColor3 = Theme.Green,
+        })
+
+        task.delay(0.12, function()
+            if button.Parent then
+                Tween(button, 0.15, {
+                    BackgroundColor3 = Theme.GreenDark,
+                })
+            end
+        end)
+
+        local success, err = pcall(callback)
+
+        if not success then
+            warn("[ChristmasUI] Button callback error:", err)
+            Library.Notify("Button Error", tostring(err), 5)
+        end
+    end)
+
+    local result = {
+        Frame = button,
+        Button = button,
+        Title = title,
+    }
+
+    function result:SetText(text)
+        title.Text = tostring(text or "")
+    end
+
+    function result:SetEnabled(enabled)
+        button.Active = enabled == true
+        button.AutoButtonColor = enabled == true
+        button.BackgroundTransparency = enabled and 0 or 0.5
+    end
+
+    table.insert(self.Elements, result)
+
+    return result
+end
+
+function TabMethods:AddToggle(config)
+    config = config or {}
+
+    local callback = config.Callback or function() end
+    local value = config.Default == true
+
+    local row = New("Frame", {
+        Name = "Toggle",
+        Parent = self.Page,
+        Size = UDim2.new(1, -4, 0, 42),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+    })
+
+    Corner(row, 8)
+    Stroke(row, Theme.Stroke, 1)
+
+    local title = MakeLabel(
+        row,
+        config.Name or "Toggle",
+        UDim2.new(1, -75, 1, 0),
+        UDim2.new(0, 12, 0, 0),
+        12,
+        Theme.Text,
+        Font
+    )
+
+    local switch = New("TextButton", {
+        Name = "Switch",
+        Parent = row,
+        Size = UDim2.fromOffset(42, 22),
+        Position = UDim2.new(1, -54, 0.5, -11),
+        BackgroundColor3 = value and Theme.Green or Theme.Element,
+        BorderSizePixel = 0,
+        Text = "",
+        AutoButtonColor = false,
+    })
+
+    Corner(switch, 11)
+
+    local knob = New("Frame", {
+        Name = "Knob",
+        Parent = switch,
+        Size = UDim2.fromOffset(16, 16),
+        Position = value
+            and UDim2.new(1, -19, 0.5, -8)
+            or UDim2.new(0, 3, 0.5, -8),
+        BackgroundColor3 = Theme.White,
+        BorderSizePixel = 0,
+    })
+
+    Corner(knob, 8)
+
+    local function updateVisual()
+        Tween(switch, 0.15, {
+            BackgroundColor3 = value and Theme.Green or Theme.Element,
+        })
+
+        Tween(knob, 0.15, {
+            Position = value
+                and UDim2.new(1, -19, 0.5, -8)
+                or UDim2.new(0, 3, 0.5, -8),
+        })
+    end
+
+    local function setValue(newValue, fireCallback)
+        value = newValue == true
+        updateVisual()
+
+        if fireCallback then
+            local success, err = pcall(callback, value)
+
+            if not success then
+                warn("[ChristmasUI] Toggle callback error:", err)
+                Library.Notify("Toggle Error", tostring(err), 5)
+            end
+        end
+    end
+
+    switch.Activated:Connect(function()
+        setValue(not value, true)
+    end)
+
+    row.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+
+            local position = input.Position
+            local switchPosition = switch.AbsolutePosition
+            local switchSize = switch.AbsoluteSize
+
+            local insideSwitch =
+                position.X >= switchPosition.X
+                and position.X <= switchPosition.X + switchSize.X
+                and position.Y >= switchPosition.Y
+                and position.Y <= switchPosition.Y + switchSize.Y
+
+            if not insideSwitch then
+                setValue(not value, true)
+            end
+        end
+    end)
+
+    local result = {
+        Frame = row,
+        Switch = switch,
+        Title = title,
+    }
+
+    function result:GetValue()
+        return value
+    end
+
+    function result:SetValue(newValue)
+        setValue(newValue, true)
+    end
+
+    function result:SetText(text)
+        title.Text = tostring(text or "")
+    end
+
+    table.insert(self.Elements, result)
+
+    return result
+end
+
+-- =========================================================
+-- PART 4 END
+-- =========================================================
+-- =========================================================
+-- PART 5/8: SLIDER + INPUT
+-- =========================================================
+
+function TabMethods:AddSlider(config)
+    config = config or {}
+
+    local minimum = tonumber(config.Min) or 0
+    local maximum = tonumber(config.Max) or 100
+
+    if maximum < minimum then
+        maximum, minimum = minimum, maximum
+    end
+
+    local value = math.clamp(
+        tonumber(config.Default) or minimum,
+        minimum,
+        maximum
+    )
+
+    local callback = config.Callback or function() end
+
+    local row = New("Frame", {
+        Name = "Slider",
+        Parent = self.Page,
+        Size = UDim2.new(1, -4, 0, 64),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+    })
+
+    Corner(row, 8)
+    Stroke(row, Theme.Stroke, 1)
+
+    local title = MakeLabel(
+        row,
+        config.Name or "Slider",
+        UDim2.new(0.7, 0, 0, 24),
+        UDim2.new(0, 12, 0, 5),
+        12,
+        Theme.Text,
+        FontBold
+    )
+
+    local valueLabel = MakeLabel(
+        row,
+        tostring(value),
+        UDim2.new(0.25, -10, 0, 24),
+        UDim2.new(0.75, 0, 0, 5),
+        12,
+        Theme.Gold,
+        FontBold
+    )
+
+    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+    local track = New("Frame", {
+        Name = "Track",
+        Parent = row,
+        Position = UDim2.new(0, 12, 0, 40),
+        Size = UDim2.new(1, -24, 0, 8),
+        BackgroundColor3 = Theme.Element,
+        BorderSizePixel = 0,
+    })
+
+    Corner(track, 5)
+
+    local fill = New("Frame", {
+        Name = "Fill",
+        Parent = track,
+        Size = UDim2.new(0, 0, 1, 0),
+        BackgroundColor3 = Theme.Green,
+        BorderSizePixel = 0,
+    })
+
+    Corner(fill, 5)
+
+    local knob = New("Frame", {
+        Name = "Knob",
+        Parent = track,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0, 0, 0.5, 0),
+        Size = UDim2.fromOffset(16, 16),
+        BackgroundColor3 = Theme.White,
+        BorderSizePixel = 0,
+    })
+
+    Corner(knob, 8)
+    Stroke(knob, Theme.Green, 2)
+
+    local hitbox = New("TextButton", {
+        Name = "Hitbox",
+        Parent = row,
+        Position = UDim2.new(0, 6, 0, 30),
+        Size = UDim2.new(1, -12, 0, 28),
+        BackgroundTransparency = 1,
+        Text = "",
+        AutoButtonColor = false,
+    })
+
+    local function updateVisual()
+        local alpha = 0
+
+        if maximum > minimum then
+            alpha = (value - minimum) / (maximum - minimum)
+        end
+
+        fill.Size = UDim2.new(alpha, 0, 1, 0)
+        knob.Position = UDim2.new(alpha, 0, 0.5, 0)
+        valueLabel.Text = tostring(value)
+    end
+
+    local function setValue(newValue, fireCallback)
+        newValue = math.clamp(
+            tonumber(newValue) or minimum,
+            minimum,
+            maximum
+        )
+
+        if config.Decimals ~= true then
+            newValue = math.floor(newValue + 0.5)
+        else
+            newValue = math.floor(newValue * 100 + 0.5) / 100
+        end
+
+        value = newValue
+        updateVisual()
+
+        if fireCallback then
+            local success, err = pcall(callback, value)
+
+            if not success then
+                warn("[ChristmasUI] Slider callback error:", err)
+                Library.Notify("Slider Error", tostring(err), 5)
+            end
+        end
+    end
+
+    local dragging = false
+
+    local function updateFromX(x)
+        local width = track.AbsoluteSize.X
+        if width <= 0 then
+            return
+        end
+
+        local alpha = math.clamp(
+            (x - track.AbsolutePosition.X) / width,
+            0,
+            1
+        )
+
+        setValue(minimum + (maximum - minimum) * alpha, true)
+    end
+
+    hitbox.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+
+            dragging = true
+            updateFromX(input.Position.X)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (
+            input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch
+        ) then
+            updateFromX(input.Position.X)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    updateVisual()
+
+    local result = {
+        Frame = row,
+        Track = track,
+        Title = title,
+    }
+
+    function result:GetValue()
+        return value
+    end
+
+    function result:SetValue(newValue)
+        setValue(newValue, true)
+    end
+
+    table.insert(self.Elements, result)
+
+    return result
+end
+
+function TabMethods:AddInput(config)
+    config = config or {}
+
+    local callback = config.Callback or function() end
+
+    local row = New("Frame", {
+        Name = "Input",
+        Parent = self.Page,
+        Size = UDim2.new(1, -4, 0, 68),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+    })
+
+    Corner(row, 8)
+    Stroke(row, Theme.Stroke, 1)
+
+    MakeLabel(
+        row,
+        config.Name or "Input",
+        UDim2.new(1, -20, 0, 24),
+        UDim2.new(0, 12, 0, 4),
+        12,
+        Theme.Text,
+        FontBold
+    )
+
+    local input = New("TextBox", {
+        Name = "TextBox",
+        Parent = row,
+        Position = UDim2.new(0, 10, 0, 32),
+        Size = UDim2.new(1, -20, 0, 28),
+        BackgroundColor3 = Theme.Element,
+        BorderSizePixel = 0,
+        Text = tostring(config.Default or ""),
+        PlaceholderText = config.Placeholder or "Enter text...",
+        PlaceholderColor3 = Theme.SubText,
+        TextColor3 = Theme.White,
+        ClearTextOnFocus = false,
+        TextSize = 12,
+        Font = Font,
+        TextXAlignment = Enum.TextXAlignment.Left,
+    })
+
+    Corner(input, 6)
+    Padding(input, 6)
+
+    input.FocusLost:Connect(function(enterPressed)
+        if config.OnlyEnter == true and not enterPressed then
+            return
+        end
+
+        local success, err = pcall(callback, input.Text)
+
+        if not success then
+            warn("[ChristmasUI] Input callback error:", err)
+            Library.Notify("Input Error", tostring(err), 5)
+        end
+    end)
+
+    local result = {
+        Frame = row,
+        TextBox = input,
+    }
+
+    function result:GetValue()
+        return input.Text
+    end
+
+    function result:SetValue(text)
+        input.Text = tostring(text or "")
+    end
+
+    table.insert(self.Elements, result)
+
+    return result
+end
+
+-- Alias สำหรับสคริปต์ที่เรียก AddTextbox
+TabMethods.AddTextbox = TabMethods.AddInput
+
+-- =========================================================
+-- PART 5 END
+-- =========================================================
+-- =========================================================
+-- PART 6/8: DROPDOWN + MULTI DROPDOWN
+-- =========================================================
+
+local function CloseActiveDropdown()
+    if activeDropdownClose then
+        activeDropdownClose()
+    end
+end
+
+function TabMethods:AddDropdown(config)
+    config = config or {}
+
+    local options = config.Options or {}
+    local selected = config.Default
+    local callback = config.Callback or function() end
+    local opened = false
+
+    local row = New("Frame", {
+        Name = "Dropdown",
+        Parent = self.Page,
+        Size = UDim2.new(1, -4, 0, 42),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+        ClipsDescendants = false,
+        ZIndex = 5,
+    })
+
+    Corner(row, 8)
+    Stroke(row, Theme.Stroke, 1)
+
+    MakeLabel(
+        row,
+        config.Name or "Dropdown",
+        UDim2.new(0.45, -10, 1, 0),
+        UDim2.new(0, 12, 0, 0),
+        12,
+        Theme.Text,
+        FontBold
+    ).ZIndex = 6
+
+    local selector = New("TextButton", {
+        Name = "Selector",
+        Parent = row,
+        Position = UDim2.new(0.45, 0, 0, 6),
+        Size = UDim2.new(0.55, -10, 0, 30),
+        BackgroundColor3 = Theme.Element,
+        BorderSizePixel = 0,
+        Text = tostring(selected or "Select...") .. "  ▾",
+        TextColor3 = Theme.White,
+        TextSize = 11,
+        Font = Font,
+        AutoButtonColor = false,
+        ZIndex = 6,
+    })
+
+    Corner(selector, 6)
+
+    local list = New("ScrollingFrame", {
+        Name = "Options",
+        Parent = ScreenGui,
+        Size = UDim2.fromOffset(180, 0),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+        ScrollBarThickness = 3,
+        ScrollBarImageColor3 = Theme.Green,
+        CanvasSize = UDim2.new(),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        Visible = false,
+        ZIndex = 110,
+    })
+
+    Corner(list, 8)
+    Stroke(list, Theme.Stroke, 1)
+
+    Padding(list, 5)
+
+    local layout = New("UIListLayout", {
+        Parent = list,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 4),
+    })
+
+    local function reposition()
+        if not row.Parent then
+            return
+        end
+
+        local pos = selector.AbsolutePosition
+        local size = selector.AbsoluteSize
+
+        list.Position = UDim2.fromOffset(
+            pos.X,
+            pos.Y + size.Y + 4
+        )
+
+        list.Size = UDim2.fromOffset(
+            math.max(160, size.X),
+            math.min(150, math.max(36, #options * 32 + 10))
+        )
+    end
+
+    local function close()
+        opened = false
+        list.Visible = false
+
+        if activeDropdownClose == close then
+            activeDropdownClose = nil
+            DropdownOverlay.Visible = false
+        end
+    end
+
+    local function setValue(value, fireCallback)
+        selected = value
+        selector.Text = tostring(value or "Select...") .. "  ▾"
+
+        if fireCallback then
+            local success, err = pcall(callback, selected)
+
+            if not success then
+                warn("[ChristmasUI] Dropdown callback error:", err)
+            end
+        end
+    end
+
+    local function rebuild()
+        for _, child in ipairs(list:GetChildren()) do
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
+        end
+
+        for index, option in ipairs(options) do
+            local optionValue = option
+
+            local button = New("TextButton", {
+                Name = "Option_" .. index,
+                Parent = list,
+                Size = UDim2.new(1, -2, 0, 28),
+                BackgroundColor3 = Theme.Element,
+                BorderSizePixel = 0,
+                Text = tostring(optionValue),
+                TextColor3 = Theme.Text,
+                TextSize = 11,
+                Font = Font,
+                AutoButtonColor = false,
+                LayoutOrder = index,
+                ZIndex = 111,
+            })
+
+            Corner(button, 5)
+
+            button.Activated:Connect(function()
+                setValue(optionValue, true)
+                close()
+            end)
+        end
+    end
+
+    selector.Activated:Connect(function()
+        if opened then
+            close()
+            return
+        end
+
+        CloseActiveDropdown()
+
+        opened = true
+        activeDropdownClose = close
+        DropdownOverlay.Visible = true
+        list.Visible = true
+
+        reposition()
+        rebuild()
+    end)
+
+    local result = {
+        Frame = row,
+        Selector = selector,
+    }
+
+    function result:GetValue()
+        return selected
+    end
+
+    function result:SetValue(value)
+        setValue(value, true)
+    end
+
+    function result:SetOptions(newOptions)
+        options = newOptions or {}
+        rebuild()
+        reposition()
+    end
+
+    function result:Close()
+        close()
+    end
+
+    table.insert(self.Elements, result)
+
+    return result
+end
+
+function TabMethods:AddMultiDropdown(config)
+    config = config or {}
+
+    local options = config.Options or {}
+    local selected = {}
+
+    for _, value in ipairs(config.Default or {}) do
+        selected[value] = true
+    end
+
+    local callback = config.Callback or function() end
+    local opened = false
+
+    local row = New("Frame", {
+        Name = "MultiDropdown",
+        Parent = self.Page,
+        Size = UDim2.new(1, -4, 0, 42),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+        ClipsDescendants = false,
+        ZIndex = 5,
+    })
+
+    Corner(row, 8)
+    Stroke(row, Theme.Stroke, 1)
+
+    MakeLabel(
+        row,
+        config.Name or "Multi Select",
+        UDim2.new(0.4, -8, 1, 0),
+        UDim2.new(0, 12, 0, 0),
+        12,
+        Theme.Text,
+        FontBold
+    ).ZIndex = 6
+
+    local selector = New("TextButton", {
+        Name = "Selector",
+        Parent = row,
+        Position = UDim2.new(0.4, 0, 0, 6),
+        Size = UDim2.new(0.6, -10, 0, 30),
+        BackgroundColor3 = Theme.Element,
+        BorderSizePixel = 0,
+        Text = "Select...  ▾",
+        TextColor3 = Theme.White,
+        TextSize = 11,
+        Font = Font,
+        AutoButtonColor = false,
+        ZIndex = 6,
+    })
+
+    Corner(selector, 6)
+
+    local list = New("ScrollingFrame", {
+        Name = "MultiOptions",
+        Parent = ScreenGui,
+        Size = UDim2.fromOffset(180, 150),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+        ScrollBarThickness = 3,
+        ScrollBarImageColor3 = Theme.Green,
+        CanvasSize = UDim2.new(),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        Visible = false,
+        ZIndex = 110,
+    })
+
+    Corner(list, 8)
+    Stroke(list, Theme.Stroke, 1)
+    Padding(list, 5)
+
+    New("UIListLayout", {
+        Parent = list,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 4),
+    })
+
+    local function updateText()
+        local values = {}
+
+        for _, option in ipairs(options) do
+            if selected[option] then
+                table.insert(values, tostring(option))
+            end
+        end
+
+        selector.Text = (#values > 0 and table.concat(values, ", ") or "Select...")
+            .. "  ▾"
+    end
+
+    local function close()
+        opened = false
+        list.Visible = false
+
+        if activeDropdownClose == close then
+            activeDropdownClose = nil
+            DropdownOverlay.Visible = false
+        end
+    end
+
+    local function reposition()
+        local pos = selector.AbsolutePosition
+        local size = selector.AbsoluteSize
+
+        list.Position = UDim2.fromOffset(pos.X, pos.Y + size.Y + 4)
+        list.Size = UDim2.fromOffset(math.max(160, size.X), 150)
+    end
+
+    local function rebuild()
+        for _, child in ipairs(list:GetChildren()) do
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
+        end
+
+        for index, option in ipairs(options) do
+            local value = option
+
+            local button = New("TextButton", {
+                Name = "Option_" .. index,
+                Parent = list,
+                Size = UDim2.new(1, -2, 0, 28),
+                BackgroundColor3 = selected[value]
+                    and Theme.GreenDark or Theme.Element,
+                BorderSizePixel = 0,
+                Text = (selected[value] and "✓  " or "    ")
+                    .. tostring(value),
+                TextColor3 = Theme.White,
+                TextSize = 11,
+                Font = Font,
+                AutoButtonColor = false,
+                LayoutOrder = index,
+                ZIndex = 111,
+            })
+
+            Corner(button, 5)
+
+            button.Activated:Connect(function()
+                selected[value] = not selected[value] or nil
+
+                rebuild()
+                updateText()
+
+                local values = {}
+
+                for _, item in ipairs(options) do
+                    if selected[item] then
+                        table.insert(values, item)
+                    end
+                end
+
+                local success, err = pcall(callback, values)
+
+                if not success then
+                    warn("[ChristmasUI] MultiDropdown callback error:", err)
+                end
+            end)
+        end
+    end
+
+    selector.Activated:Connect(function()
+        if opened then
+            close()
+            return
+        end
+
+        CloseActiveDropdown()
+
+        opened = true
+        activeDropdownClose = close
+        DropdownOverlay.Visible = true
+        list.Visible = true
+
+        reposition()
+        rebuild()
+    end)
+
+    local result = {
+        Frame = row,
+        Selector = selector,
+    }
+
+    function result:GetValue()
+        local values = {}
+
+        for _, option in ipairs(options) do
+            if selected[option] then
+                table.insert(values, option)
+            end
+        end
+
+        return values
+    end
+
+    function result:SetOptions(newOptions)
+        options = newOptions or {}
+        rebuild()
+        updateText()
+        reposition()
+    end
+
+    function result:Close()
+        close()
+    end
+
+    updateText()
+    table.insert(self.Elements, result)
+
+    return result
+end
+
+-- =========================================================
+-- PART 6 END
+-- =========================================================
+-- =========================================================
+-- PART 7/8: COLOR PICKER + KEYBIND + SPECIAL CARDS
+-- =========================================================
+
+function TabMethods:AddColorPicker(config)
+    config = config or {}
+
+    local currentColor = config.Default or Theme.Green
+    local callback = config.Callback or function() end
+
+    local presets = {
+        Color3.fromRGB(34, 139, 34),
+        Color3.fromRGB(196, 30, 58),
+        Color3.fromRGB(255, 200, 80),
+        Color3.fromRGB(65, 105, 225),
+        Color3.fromRGB(186, 85, 211),
+        Color3.fromRGB(240, 240, 245),
+    }
+
+    local presetIndex = 1
+
+    local row = New("Frame", {
+        Name = "ColorPicker",
+        Parent = self.Page,
+        Size = UDim2.new(1, -4, 0, 42),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+    })
+
+    Corner(row, 8)
+    Stroke(row, Theme.Stroke, 1)
+
+    MakeLabel(
+        row,
+        config.Name or "Accent Color",
+        UDim2.new(1, -75, 1, 0),
+        UDim2.new(0, 12, 0, 0),
+        12,
+        Theme.Text,
+        FontBold
+    )
+
+    local colorButton = New("TextButton", {
+        Name = "ColorButton",
+        Parent = row,
+        Size = UDim2.fromOffset(40, 26),
+        Position = UDim2.new(1, -52, 0.5, -13),
+        BackgroundColor3 = currentColor,
+        BorderSizePixel = 0,
+        Text = "",
+        AutoButtonColor = false,
+    })
+
+    Corner(colorButton, 6)
+    Stroke(colorButton, Theme.White, 1)
+
+    local function setColor(color, fireCallback)
+        currentColor = color
+        colorButton.BackgroundColor3 = color
+
+        if fireCallback then
+            local ok, err = pcall(callback, color)
+
+            if not ok then
+                warn("[ChristmasUI] ColorPicker callback error:", err)
+            end
+        end
+    end
+
+    colorButton.Activated:Connect(function()
+        presetIndex = presetIndex % #presets + 1
+        setColor(presets[presetIndex], true)
+    end)
+
+    local result = {
+        Frame = row,
+        Button = colorButton,
+    }
+
+    function result:GetValue()
+        return currentColor
+    end
+
+    function result:SetValue(color)
+        if typeof(color) == "Color3" then
+            setColor(color, true)
+        end
+    end
+
+    table.insert(self.Elements, result)
+
+    return result
+end
+
+function TabMethods:AddKeybind(config)
+    config = config or {}
+
+    local currentKey = config.Default or Enum.KeyCode.RightShift
+    local callback = config.Callback or function() end
+    local listening = false
+
+    local row = New("Frame", {
+        Name = "Keybind",
+        Parent = self.Page,
+        Size = UDim2.new(1, -4, 0, 42),
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+    })
+
+    Corner(row, 8)
+    Stroke(row, Theme.Stroke, 1)
+
+    MakeLabel(
+        row,
+        config.Name or "Keybind",
+        UDim2.new(1, -110, 1, 0),
+        UDim2.new(0, 12, 0, 0),
+        12,
+        Theme.Text,
+        FontBold
+    )
+
+    local keyButton = New("TextButton", {
+        Name = "KeyButton",
+        Parent = row,
+        Size = UDim2.fromOffset(90, 28),
+        Position = UDim2.new(1, -100, 0.5, -14),
+        BackgroundColor3 = Theme.Element,
+        BorderSizePixel = 0,
+        Text = currentKey.Name,
+        TextColor3 = Theme.Gold,
+        TextSize = 11,
+        Font = FontBold,
+        AutoButtonColor = false,
+    })
+
+    Corner(keyButton, 6)
+
+    keyButton.Activated:Connect(function()
+        listening = true
+        keyButton.Text = "Press key..."
+    end)
+
+    local inputConnection
+
+    inputConnection = UserInputService.InputBegan:Connect(function(input, processed)
+        if listening then
+            if input.UserInputType == Enum.UserInputType.Keyboard
+                and input.KeyCode ~= Enum.KeyCode.Unknown then
+
+                currentKey = input.KeyCode
+                listening = false
+                keyButton.Text = currentKey.Name
+            end
+
+            return
+        end
+
+        if processed then
+            return
+        end
+
+        if input.UserInputType == Enum.UserInputType.Keyboard
+            and input.KeyCode == currentKey then
+
+            local ok, err = pcall(callback, currentKey)
+
+            if not ok then
+                warn("[ChristmasUI] Keybind callback error:", err)
+            end
+        end
+    end)
+
+    local result = {
+        Frame = row,
+        Button = keyButton,
+    }
+
+    function result:GetValue()
+        return currentKey
+    end
+
+    function result:SetValue(key)
+        if typeof(key) == "EnumItem"
+            and key.EnumType == Enum.KeyCode then
+
+            currentKey = key
+            keyButton.Text = key.Name
+            listening = false
+        end
+    end
+
+    table.insert(self.Elements, result)
+
+    return result
+end
+
+function TabMethods:AddInfoCard(config)
+    config = config or {}
+
+    return self:AddCard({
+        Title = "ℹ  " .. (config.Title or "Information"),
+        Description = config.Description or "",
+        Size = config.Size or UDim2.new(1, -4, 0, 90),
+    })
+end
+
+function TabMethods:AddProfileCard(config)
+    config = config or {}
+
+    local card = self:AddCard({
+        Title = config.Name or LocalPlayer.DisplayName,
+        Description = config.Description or ("@" .. LocalPlayer.Name),
+        Size = config.Size or UDim2.new(1, -4, 0, 90),
+    })
+
+    card.Frame.Name = "ProfileCard"
+
+    return card
+end
+
+function TabMethods:AddStatus(config)
+    config = config or {}
+
+    local card = self:AddCard({
+        Title = config.Name or "System Status",
+        Description = "Status: " .. tostring(config.Status or "Online"),
+        Size = UDim2.new(1, -4, 0, 68),
+    })
+
+    card.Frame.Name = "StatusCard"
+
+    return card
+end
+
+function TabMethods:AddFeatureCard(config)
+    config = config or {}
+
+    local card = self:AddCard({
+        Title = "✦  " .. (config.Title or "Feature"),
+        Description = config.Description or "",
+        Size = config.Size or UDim2.new(1, -4, 0, 90),
+    })
+
+    card.Frame.Name = "FeatureCard"
+
+    return card
+end
+
+function TabMethods:AddSearchBox(config)
+    config = config or {}
+
+    local search = self:AddInput({
+        Name = config.Name or "Search",
+        Placeholder = config.Placeholder or "Search...",
+        Callback = config.Callback,
+    })
+
+    search.Frame.Name = "SearchBox"
+
+    return search
+end
+
+function TabMethods:AddCommandBox(config)
+    config = config or {}
+
+    local command = self:AddInput({
+        Name = config.Name or "Command",
+        Placeholder = config.Placeholder or "Enter command...",
+        OnlyEnter = true,
+        Callback = config.Callback,
+    })
+
+    command.Frame.Name = "CommandBox"
+
+    return command
+end
+
+-- =========================================================
+-- PART 7 END
+-- =========================================================
