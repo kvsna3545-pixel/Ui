@@ -1,0 +1,1061 @@
+--[[
+=========================================================
+                    KRYVEX HUB UI LIBRARY
+                       v1.7.0
+=========================================================
+
+CORE
+- Window
+- Tab
+- Section
+- Label
+- Card
+- Button
+- Toggle
+- Slider
+- Input
+- Dropdown
+- MultiDropdown
+- ColorPicker
+- Keybind
+
+SPECIAL COMPONENTS
+- InfoCard
+- ProfileCard
+- Status
+- FeatureCard
+- SearchBox
+- CommandBox
+
+EFFECTS
+- Glow
+- Pulse
+- Shake
+- Rainbow
+- Fire / Ember
+
+WINDOW
+- Notify
+- Minimize
+- Hide / Show
+- Destroy
+- Resize
+- Drag
+- Floating Button
+
+INFO CARD
+- Avatar
+- Display Name
+- Username
+- User ID
+- Game
+- Place ID
+- Job ID
+- Version
+- FPS
+- Ping
+- Live Status
+
+=========================================================
+]]
+
+--=========================================================
+-- SERVICES
+--=========================================================
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Stats = game:GetService("Stats")
+local MarketplaceService = game:GetService("MarketplaceService")
+
+local LocalPlayer = Players.LocalPlayer
+
+--=========================================================
+-- KRYVEX
+--=========================================================
+
+local KRYVEX = {}
+
+KRYVEX.Name = My Hub"
+KRYVEX.Version = "1.7.0"
+
+--=========================================================
+-- THEME
+--=========================================================
+
+KRYVEX.Themes = {
+
+    Grey = {
+
+        IsHalloween = false,
+        Background = Color3.fromRGB(46, 47, 52),
+        Sidebar = Color3.fromRGB(38, 39, 44),
+        Card = Color3.fromRGB(62, 63, 69),
+        CardHover = Color3.fromRGB(77, 78, 85),
+        Primary = Color3.fromRGB(178, 183, 192),
+        PrimaryDark = Color3.fromRGB(102, 106, 115),
+        Text = Color3.fromRGB(240, 245, 250),
+        SubText = Color3.fromRGB(155, 170, 188),
+        ToggleOff = Color3.fromRGB(88, 90, 97),
+        Danger = Color3.fromRGB(190, 65, 75),
+        Success = Color3.fromRGB(75, 210, 125),
+        Warning = Color3.fromRGB(255, 190, 70),
+        Stroke1 = Color3.fromRGB(92, 96, 104),
+        Stroke2 = Color3.fromRGB(190, 195, 203),
+        Stroke3 = Color3.fromRGB(112, 117, 125),
+        Sheen1 = Color3.fromRGB(255, 255, 255),
+        Sheen2 = Color3.fromRGB(196, 198, 205),
+        Sheen3 = Color3.fromRGB(236, 238, 242),
+        FloatBg = Color3.fromRGB(24, 25, 28),
+        FloatEdge1 = Color3.fromRGB(150, 155, 163),
+        FloatEdge2 = Color3.fromRGB(235, 238, 243),
+        FxDark = Color3.fromRGB(105, 109, 118),
+        FxMid = Color3.fromRGB(150, 156, 165),
+        FxSilver = Color3.fromRGB(185, 191, 200),
+        FxLight = Color3.fromRGB(235, 238, 243),
+        FxWhite = Color3.fromRGB(255, 255, 255),
+
+    },
+
+    Halloween = {
+
+        IsHalloween = true,
+        Background = Color3.fromRGB(30, 20, 38),
+        Sidebar = Color3.fromRGB(22, 14, 28),
+        Card = Color3.fromRGB(46, 31, 58),
+        CardHover = Color3.fromRGB(66, 44, 82),
+        Primary = Color3.fromRGB(255, 140, 30),
+        PrimaryDark = Color3.fromRGB(150, 75, 15),
+        Text = Color3.fromRGB(255, 240, 222),
+        SubText = Color3.fromRGB(190, 160, 200),
+        ToggleOff = Color3.fromRGB(80, 60, 95),
+        Danger = Color3.fromRGB(205, 50, 60),
+        Success = Color3.fromRGB(125, 215, 85),
+        Warning = Color3.fromRGB(255, 205, 70),
+        Stroke1 = Color3.fromRGB(120, 50, 170),
+        Stroke2 = Color3.fromRGB(255, 140, 30),
+        Stroke3 = Color3.fromRGB(140, 60, 190),
+        Sheen1 = Color3.fromRGB(255, 215, 170),
+        Sheen2 = Color3.fromRGB(175, 120, 210),
+        Sheen3 = Color3.fromRGB(255, 190, 120),
+        FloatBg = Color3.fromRGB(24, 12, 32),
+        FloatEdge1 = Color3.fromRGB(150, 70, 200),
+        FloatEdge2 = Color3.fromRGB(255, 170, 60),
+        FxDark = Color3.fromRGB(95, 45, 140),
+        FxMid = Color3.fromRGB(165, 95, 225),
+        FxSilver = Color3.fromRGB(255, 125, 20),
+        FxLight = Color3.fromRGB(255, 185, 80),
+        FxWhite = Color3.fromRGB(255, 240, 210),
+
+    },
+
+}
+
+local function CloneTheme(source, patch)
+    local result = {}
+    for key, value in pairs(source) do result[key] = value end
+    for key, value in pairs(patch or {}) do result[key] = value end
+    return result
+end
+
+KRYVEX.Themes.Normal = CloneTheme(KRYVEX.Themes.Grey, { ThemeId="normal", Animation="clean", IsHalloween=false, Background=Color3.fromRGB(17,18,22), Sidebar=Color3.fromRGB(11,12,16), Card=Color3.fromRGB(27,29,34), CardHover=Color3.fromRGB(44,47,55), Primary=Color3.fromRGB(198,203,212), PrimaryDark=Color3.fromRGB(105,110,120), Text=Color3.fromRGB(247,248,250), SubText=Color3.fromRGB(168,173,182), Stroke1=Color3.fromRGB(78,83,93), Stroke2=Color3.fromRGB(235,238,243), Stroke3=Color3.fromRGB(135,141,151), Sheen1=Color3.fromRGB(255,255,255), Sheen2=Color3.fromRGB(174,179,188), Sheen3=Color3.fromRGB(236,238,242), FloatBg=Color3.fromRGB(12,13,17), FloatEdge1=Color3.fromRGB(126,132,143), FloatEdge2=Color3.fromRGB(246,247,250), FxDark=Color3.fromRGB(65,69,78), FxMid=Color3.fromRGB(126,132,143), FxSilver=Color3.fromRGB(191,197,207), FxLight=Color3.fromRGB(232,235,240), FxWhite=Color3.fromRGB(255,255,255) })
+KRYVEX.Themes.Christmas = CloneTheme(KRYVEX.Themes.Grey, { ThemeId="christmas", Animation="snow", IsHalloween=false, Background=Color3.fromRGB(18,35,42), Sidebar=Color3.fromRGB(13,28,34), Card=Color3.fromRGB(27,58,61), CardHover=Color3.fromRGB(39,83,80), Primary=Color3.fromRGB(218,55,68), PrimaryDark=Color3.fromRGB(145,30,45), Text=Color3.fromRGB(245,255,246), SubText=Color3.fromRGB(170,211,198), Stroke1=Color3.fromRGB(25,125,95), Stroke2=Color3.fromRGB(235,70,80), Stroke3=Color3.fromRGB(205,180,80), Sheen1=Color3.fromRGB(255,245,205), Sheen2=Color3.fromRGB(205,60,75), Sheen3=Color3.fromRGB(160,235,205), FloatBg=Color3.fromRGB(10,28,29), FloatEdge1=Color3.fromRGB(205,50,65), FloatEdge2=Color3.fromRGB(255,225,125), FxDark=Color3.fromRGB(20,85,67), FxMid=Color3.fromRGB(80,175,130), FxSilver=Color3.fromRGB(235,245,255), FxLight=Color3.fromRGB(255,245,210), FxWhite=Color3.fromRGB(255,255,255) })
+KRYVEX.Themes.Valentine = CloneTheme(KRYVEX.Themes.Grey, { ThemeId="valentine", Animation="hearts", IsHalloween=false, Background=Color3.fromRGB(45,18,34), Sidebar=Color3.fromRGB(31,12,25), Card=Color3.fromRGB(72,28,54), CardHover=Color3.fromRGB(100,38,72), Primary=Color3.fromRGB(255,82,145), PrimaryDark=Color3.fromRGB(170,35,90), Text=Color3.fromRGB(255,239,247), SubText=Color3.fromRGB(220,160,190), Stroke1=Color3.fromRGB(175,45,105), Stroke2=Color3.fromRGB(255,115,175), Stroke3=Color3.fromRGB(215,75,135), Sheen1=Color3.fromRGB(255,190,220), Sheen2=Color3.fromRGB(220,70,140), Sheen3=Color3.fromRGB(255,235,245), FloatBg=Color3.fromRGB(30,9,23), FloatEdge1=Color3.fromRGB(220,55,125), FloatEdge2=Color3.fromRGB(255,170,210), FxDark=Color3.fromRGB(130,25,75), FxMid=Color3.fromRGB(230,70,145), FxSilver=Color3.fromRGB(255,155,205), FxLight=Color3.fromRGB(255,110,175), FxWhite=Color3.fromRGB(255,245,250) })
+KRYVEX.Themes.Summer = CloneTheme(KRYVEX.Themes.Grey, { ThemeId="summer", Animation="bubbles", IsHalloween=false, Background=Color3.fromRGB(12,47,64), Sidebar=Color3.fromRGB(8,33,49), Card=Color3.fromRGB(19,78,91), CardHover=Color3.fromRGB(27,108,119), Primary=Color3.fromRGB(255,194,62), PrimaryDark=Color3.fromRGB(190,112,25), Text=Color3.fromRGB(239,255,255), SubText=Color3.fromRGB(143,211,220), Stroke1=Color3.fromRGB(20,155,175), Stroke2=Color3.fromRGB(255,205,85), Stroke3=Color3.fromRGB(50,205,195), Sheen1=Color3.fromRGB(255,239,145), Sheen2=Color3.fromRGB(30,185,210), Sheen3=Color3.fromRGB(210,255,240), FloatBg=Color3.fromRGB(5,28,41), FloatEdge1=Color3.fromRGB(35,190,210), FloatEdge2=Color3.fromRGB(255,220,100), FxDark=Color3.fromRGB(15,105,130), FxMid=Color3.fromRGB(40,190,205), FxSilver=Color3.fromRGB(155,245,235), FxLight=Color3.fromRGB(255,220,100), FxWhite=Color3.fromRGB(245,255,255) })
+
+KRYVEX.ThemeAliases = { grey="normal", default="normal", normal="normal", halloween="halloween", christmas="christmas", xmas="christmas", valentine="valentine", valentines="valentine", summer="summer" }
+KRYVEX.ThemeSettings = { Theme="halloween", Animation=true }
+
+KRYVEX.HalloweenSeason = { Month = 10, FromDay = 6, ToDay = 30 }
+
+function KRYVEX:SetTheme(mode)
+    mode = string.lower(tostring(mode or self.ThemeSettings.Theme or "halloween"))
+    if mode == "auto" then
+        local ok, d = pcall(function() return os.date("*t") end)
+        local season = ok and type(d) == "table" and d.month == self.HalloweenSeason.Month and d.day >= self.HalloweenSeason.FromDay and d.day <= self.HalloweenSeason.ToDay
+        mode = season and "halloween" or "normal"
+    end
+    mode = self.ThemeAliases[mode] or mode
+    local themeKey = mode:gsub("^%l", string.upper)
+    if not self.Themes[themeKey] then mode, themeKey = "halloween", "Halloween" end
+    self.ThemeMode, self.Theme = mode, self.Themes[themeKey]
+    self.ThemeSettings.Theme = mode
+    return self.Theme
+end
+KRYVEX:SetTheme("halloween")
+
+--=========================================================
+-- GLASS & BACKGROUND
+--=========================================================
+
+KRYVEX.Glass = { Main = 0.2, Sidebar = 0.3, Card = 0.4, Inner = 0.45 }
+KRYVEX.LogoImage = "rbxassetid://72018461815575"
+KRYVEX.Background = { Enabled = true, Image = "rbxassetid://114611759742732", File = "Kryvex_bg.jpg", Url = "", Transparency = 0.5 }
+
+local function ResolveBackground()
+    local cfg = KRYVEX.Background
+    if not cfg.Enabled then return nil end
+    if cfg.Image and cfg.Image ~= "" then return cfg.Image end
+    local getAsset = getcustomasset or getsynasset
+    if not (getAsset and isfile and writefile) then return nil end
+    pcall(function()
+        if cfg.Url ~= "" and not isfile(cfg.File) then
+            writefile(cfg.File, game:HttpGet(cfg.Url))
+        end
+    end)
+    local ok, asset = pcall(function()
+        if isfile(cfg.File) then return getAsset(cfg.File) end
+    end)
+    if ok and asset then return asset end
+    return nil
+end
+
+local function FixImage(imageObject, label)
+    task.spawn(function()
+        local original = imageObject.Image
+        if original == "" then return end
+        local ok, result = pcall(function() return game:GetObjects(original) end)
+        if ok and type(result) == "table" and result[1] then
+            local asset = result[1]
+            local texture
+            if asset:IsA("Decal") or asset:IsA("Texture") then
+                texture = asset.Texture
+            else
+                local found = asset:FindFirstChildWhichIsA("Decal", true)
+                if found then texture = found.Texture end
+            end
+            if texture and texture ~= "" then imageObject.Image = texture end
+        end
+    end)
+end
+
+--=========================================================
+-- ICONS & LUCIDE
+--=========================================================
+
+KRYVEX.Icons = {}
+KRYVEX.IconGlyphs = {
+    settings = "\u{2699}", setting = "\u{2699}", cog = "\u{2699}",
+    home = "\u{2302}", house = "\u{2302}", main = "\u{2302}",
+    star = "\u{2605}", info = "\u{2139}", user = "\u{263B}", users = "\u{263B}", player = "\u{263B}",
+    sword = "\u{2694}", combat = "\u{2694}", zap = "\u{26A1}", bolt = "\u{26A1}", heart = "\u{2665}",
+    eye = "\u{25C9}", visuals = "\u{25C9}", search = "\u{2315}", list = "\u{2630}", menu = "\u{2630}",
+    misc = "\u{25C8}", shield = "\u{26E8}", bug = "\u{2731}", play = "\u{25B6}", bell = "\u{266A}",
+    code = "\u{276E}\u{276F}", map = "\u{25CE}", target = "\u{25CE}", teleport = "\u{27A4}", farm = "\u{273F}",
+}
+KRYVEX.IconGlyphs["skull"] = "\u{2620}"
+KRYVEX.IconGlyphs["dog"] = "\u{1F43A}"
+KRYVEX.IconGlyphs["paw-print"] = "\u{1F43E}"
+KRYVEX.IconGlyphs["bird"] = "\u{1F426}"
+KRYVEX.IconGlyphs["ghost"] = "\u{1F47B}"
+KRYVEX.IconGlyphs["moon"] = "\u{263E}"
+KRYVEX.IconGlyphs["triangle-alert"] = "\u{26A0}"
+KRYVEX.IconGlyphs["alert-triangle"] = "\u{26A0}"
+
+KRYVEX.DecoIcons = { Wolf = "dog", Paw = "paw-print", Crow = "bird", Header = "ghost", Corner = "skull" }
+
+function KRYVEX:AddIcons(iconTable)
+    for name, value in pairs(iconTable or {}) do
+        KRYVEX.Icons[string.lower(tostring(name))] = value
+    end
+end
+
+KRYVEX.UseLucide = true
+KRYVEX.LucideUrl = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua"
+KRYVEX.IconAliases = { home = "house", main = "house", setting = "settings", cog = "settings", player = "user", visuals = "eye", combat = "swords", misc = "shapes", teleport = "map-pin", farm = "sprout" }
+KRYVEX.IconAliases["triangle-alert"] = "alert-triangle"
+
+local LucideModule = nil
+local LucideTried = false
+
+local function GetLucide()
+    if LucideTried then return LucideModule end
+    LucideTried = true
+    if not KRYVEX.UseLucide then return nil end
+    local ok, result = pcall(function()
+        return loadstring(game:HttpGet(KRYVEX.LucideUrl))()
+    end)
+    if ok and type(result) == "table" and result.GetAsset then
+        LucideModule = result
+    end
+    return LucideModule
+end
+
+local function GetLucideIcon(name)
+    local lucide = GetLucide()
+    if not lucide then return nil end
+    local candidates = { name, KRYVEX.IconAliases[name] }
+    for _, candidate in ipairs(candidates) do
+        local ok, asset = pcall(lucide.GetAsset, candidate)
+        if ok and asset and asset.Url then
+            return { Image = asset.Url, ImageRectOffset = asset.ImageRectOffset, ImageRectSize = asset.ImageRectSize }
+        end
+    end
+    return nil
+end
+
+local function ResolveIcon(icon)
+    if icon == nil or icon == "" then return nil end
+    if type(icon) == "number" then return "image", { Image = "rbxassetid://" .. tostring(icon) } end
+    if type(icon) == "table" then return "image", icon end
+    icon = tostring(icon)
+    if icon:find("rbxassetid://", 1, true) or icon:find("rbxthumb://", 1, true) or icon:find("rbxasset://", 1, true) or icon:match("^https?://") then
+        return "image", { Image = icon }
+    end
+    if icon:match("^%d+$") then return "image", { Image = "rbxassetid://" .. icon } end
+    local key = string.lower(icon):gsub("^lucide:", "")
+    local registered = KRYVEX.Icons[key]
+    if registered then
+        if type(registered) == "table" then return "image", registered end
+        return "image", { Image = tostring(registered) }
+    end
+    local lucideIcon = GetLucideIcon(key)
+    if lucideIcon then return "image", lucideIcon end
+    return "glyph", KRYVEX.IconGlyphs[key] or "\u{25C8}"
+end
+
+--=========================================================
+-- HELPERS (CREATE, CORNER, STROKE, ETC.)
+--=========================================================
+
+local function Create(className, properties)
+    local object = Instance.new(className)
+    for property, value in pairs(properties or {}) do
+        pcall(function() object[property] = value end)
+    end
+    if properties and properties.BackgroundTransparency == nil and properties.Name ~= "Main" and object:IsA("GuiObject") then
+        local color = properties.BackgroundColor3
+        if color == KRYVEX.Theme.Card then
+            object.BackgroundTransparency = KRYVEX.Glass.Card
+        elseif color == KRYVEX.Theme.Background then
+            object.BackgroundTransparency = KRYVEX.Glass.Inner
+        end
+    end
+    return object
+end
+
+KRYVEX.Corners = { Element = 6, Inner = 5 }
+
+local function AddFieldLabel(Frame, Name, Description)
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(0.6, -14, 0, 16)
+    Title.Position = UDim2.fromOffset(14, 5)
+    Title.BackgroundTransparency = 1
+    Title.Text = Name or "Input"
+    Title.TextColor3 = KRYVEX.Theme.Text
+    Title.TextSize = 11
+    Title.Font = Enum.Font.GothamMedium
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.TextTruncate = Enum.TextTruncate.AtEnd
+    Title.Parent = Frame
+
+    if Description then
+        local Hint = Instance.new("TextLabel")
+        Hint.Size = UDim2.new(0.4, -14, 0, 16)
+        Hint.Position = UDim2.new(0.6, 0, 0, 5)
+        Hint.BackgroundTransparency = 1
+        Hint.Text = Description
+        Hint.TextColor3 = KRYVEX.Theme.SubText
+        Hint.TextSize = 10
+        Hint.Font = Enum.Font.Gotham
+        Hint.TextXAlignment = Enum.TextXAlignment.Right
+        Hint.TextTruncate = Enum.TextTruncate.AtEnd
+        Hint.Parent = Frame
+    end
+    return Title
+end
+
+local function AddCorner(object, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 8)
+    corner.Parent = object
+    return corner
+end
+
+local function AddStroke(object, color, transparency, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or KRYVEX.Theme.Primary
+    stroke.Transparency = transparency or 0
+    stroke.Thickness = thickness or 1
+    stroke.Parent = object
+    return stroke
+end
+
+function KRYVEX.CreateIcon(icon, props)
+    props = props or {}
+    local kind, data = ResolveIcon(icon)
+    if not kind then return nil end
+    local object
+    if kind == "image" then
+        object = Create("ImageLabel", {
+            Name = props.Name or "Icon",
+            AnchorPoint = props.AnchorPoint,
+            Position = props.Position,
+            Size = props.Size or UDim2.fromOffset(18, 18),
+            BackgroundTransparency = 1,
+            Image = data.Image or "",
+            ImageRectOffset = data.ImageRectOffset or Vector2.zero,
+            ImageRectSize = data.ImageRectSize or Vector2.zero,
+            ImageColor3 = props.Color or KRYVEX.Theme.Text,
+            ImageTransparency = props.Transparency or 0,
+            ScaleType = Enum.ScaleType.Fit,
+            ZIndex = props.ZIndex or 1,
+        })
+    else
+        object = Create("TextLabel", {
+            Name = props.Name or "Icon",
+            AnchorPoint = props.AnchorPoint,
+            Position = props.Position,
+            Size = props.Size or UDim2.fromOffset(18, 18),
+            BackgroundTransparency = 1,
+            Text = data,
+            TextColor3 = props.Color or KRYVEX.Theme.Text,
+            TextTransparency = props.Transparency or 0,
+            TextSize = props.TextSize or 16,
+            Font = Enum.Font.GothamBold,
+            ZIndex = props.ZIndex or 1,
+        })
+    end
+    return object, kind
+end
+
+--=========================================================
+-- HALLOWEEN & SEASON FX
+--=========================================================
+
+KRYVEX.HalloweenFX = {
+    Tint = true, Web = true, HeaderLine = true, TitleShine = true, Embers = true,
+    Ghosts = true, Moon = true, Fog = true, Lightning = true, BorderPulse = true,
+    Intro = false, ScreenIntro = true, ScreenIntroOnce = true, ScreenIntroTitle = true,
+}
+
+function KRYVEX.BuildScreenIntro(ScreenGui, TitleText, SubtitleText)
+    local Theme = KRYVEX.Theme
+    local FX = KRYVEX.HalloweenFX
+    if not ScreenGui then return end
+    if FX.ScreenIntroOnce and KRYVEX.ScreenIntroPlayed then return end
+    KRYVEX.ScreenIntroPlayed = true
+
+    local Root = Create("Frame", { Name = "HalloweenScreenIntro", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ZIndex = 200 })
+    Root.Parent = ScreenGui
+
+    local function Alive() return Root:IsDescendantOf(game) end
+    local function ScreenSize()
+        local size = Root.AbsoluteSize
+        if size.X < 10 or size.Y < 10 then
+            local camera = workspace.CurrentCamera
+            return camera and camera.ViewportSize or Vector2.new(800, 450)
+        end
+        return size
+    end
+
+    task.delay(12, function() if Root.Parent then Root:Destroy() end end)
+
+    local Dim = Create("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(6, 2, 10), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 0 })
+    Dim.Parent = Root
+
+    local MoonSize = math.clamp(math.floor(math.min(ScreenSize().X, ScreenSize().Y) * 0.34), 110, 200)
+    local Moon = Create("Frame", {
+        AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.34, 0),
+        Size = UDim2.fromOffset(0, 0), BackgroundColor3 = Color3.new(1, 1, 1),
+        BackgroundTransparency = 0.12, BorderSizePixel = 0, ZIndex = 2,
+    })
+    Moon.Parent = Root
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.5, 0)
+    corner.Parent = Moon
+
+    task.spawn(function()
+        pcall(function()
+            TweenService:Create(Dim, TweenInfo.new(0.5), { BackgroundTransparency = 0.45 }):Play()
+            task.wait(0.55)
+            TweenService:Create(Moon, TweenInfo.new(0.9, Enum.EasingStyle.Back), { Size = UDim2.fromOffset(MoonSize, MoonSize) }):Play()
+            task.wait(2.0)
+            TweenService:Create(Dim, TweenInfo.new(0.8), { BackgroundTransparency = 1 }):Play()
+            TweenService:Create(Moon, TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Size = UDim2.fromOffset(0, 0) }):Play()
+            task.wait(0.9)
+        end)
+        if Root.Parent then Root:Destroy() end
+    end)
+end
+
+function KRYVEX.BuildSeasonFX(Window, Main, Header, Title)
+    if not KRYVEX.ThemeSettings.Animation then return end
+    if KRYVEX.Theme.IsHalloween then
+        if KRYVEX.HalloweenFX.ScreenIntro then
+            KRYVEX.BuildScreenIntro(Main.Parent, Window.Title, Window.Subtitle)
+        end
+        return
+    end
+end
+
+--=========================================================
+-- TWEENS & UTILS
+--=========================================================
+
+local function PlayTween(object, time, properties, style, direction)
+    local tween = TweenService:Create(object, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quad, direction or Enum.EasingDirection.Out), properties)
+    tween:Play()
+    return tween
+end
+
+local function GetParent()
+    if typeof(gethui) == "function" then
+        local success, result = pcall(gethui)
+        if success and result then return result end
+    end
+    return LocalPlayer:WaitForChild("PlayerGui")
+end
+
+local function GetPing()
+    local success, result = pcall(function()
+        return math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+    end)
+    if success and result then return result end
+    return 0
+end
+
+local function GetGameName()
+    local gameName = game.Name
+    task.spawn(function()
+        local success, info = pcall(function() return MarketplaceService:GetProductInfo(game.PlaceId) end)
+        if success and info and info.Name then gameName = info.Name end
+    end)
+    return gameName
+end
+
+--=========================================================
+-- EFFECTS (GLOW, PULSE, SHAKE, RAINBOW, FIRE)
+--=========================================================
+
+KRYVEX.Effects = {}
+
+function KRYVEX.Effects:Glow(Object, Color)
+    if not Object or not Object.Parent then return end
+    Color = Color or KRYVEX.Theme.Primary
+    local Stroke = Object:FindFirstChild("KRYVEX_Glow")
+    if not Stroke then
+        Stroke = Instance.new("UIStroke")
+        Stroke.Name = "KRYVEX_Glow"
+        Stroke.Thickness = 1
+        Stroke.Transparency = 0.8
+        Stroke.Color = Color
+        Stroke.Parent = Object
+    end
+    PlayTween(Stroke, 0.25, { Transparency = 0.12, Thickness = 2 })
+    return Stroke
+end
+
+function KRYVEX.Effects:Pulse(Object)
+    if not Object then return end
+    local Scale = Object:FindFirstChild("KRYVEX_PulseScale")
+    if not Scale then
+        Scale = Instance.new("UIScale")
+        Scale.Name = "KRYVEX_PulseScale"
+        Scale.Scale = 1
+        Scale.Parent = Object
+    end
+    task.spawn(function()
+        while Object.Parent do
+            local t1 = PlayTween(Scale, 0.7, { Scale = 1.025 }, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+            t1.Completed:Wait()
+            if not Object.Parent then break end
+            local t2 = PlayTween(Scale, 0.7, { Scale = 1 }, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+            t2.Completed:Wait()
+        end
+    end)
+end
+
+function KRYVEX.Effects:Shake(Object, Strength)
+    if not Object then return end
+    Strength = Strength or 4
+    local Original = Object.Position
+    task.spawn(function()
+        for i = 1, 8 do
+            if not Object.Parent then return end
+            local X = math.random(-Strength, Strength)
+            local Y = math.random(-Strength, Strength)
+            Object.Position = UDim2.new(Original.X.Scale, Original.X.Offset + X, Original.Y.Scale, Original.Y.Offset + Y)
+            task.wait(0.035)
+        end
+        if Object.Parent then Object.Position = Original end
+    end)
+end
+
+function KRYVEX.Effects:Rainbow(Object)
+    if not Object then return end
+    local Gradient = Object:FindFirstChild("KRYVEX_Rainbow")
+    if not Gradient then
+        Gradient = Instance.new("UIGradient")
+        Gradient.Name = "KRYVEX_Rainbow"
+        Gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 70, 70)),
+            ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 210, 70)),
+            ColorSequenceKeypoint.new(0.4, Color3.fromRGB(80, 255, 120)),
+            ColorSequenceKeypoint.new(0.6, Color3.fromRGB(80, 180, 255)),
+            ColorSequenceKeypoint.new(0.8, Color3.fromRGB(170, 90, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 80, 180)),
+        })
+        Gradient.Parent = Object
+    end
+    task.spawn(function()
+        while Object.Parent do
+            Gradient.Rotation = (Gradient.Rotation + 2) % 360
+            task.wait(0.03)
+        end
+    end)
+    return Gradient
+end
+
+function KRYVEX.Effects:Fire(Container)
+    if not Container then return end
+    local Holder = Container:FindFirstChild("KRYVEX_Fire")
+    if Holder then return Holder end
+    Holder = Create("Frame", { Name = "KRYVEX_Fire", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ClipsDescendants = true, ZIndex = 5 })
+    Holder.Parent = Container
+    task.spawn(function()
+        while Holder.Parent do
+            local Ember = Create("Frame", {
+                Size = UDim2.fromOffset(math.random(3, 7), math.random(3, 7)),
+                Position = UDim2.new(math.random(5, 95) / 100, 0, 1, 0),
+                BackgroundColor3 = Color3.fromRGB(255, math.random(80, 190), math.random(20, 70)),
+                BackgroundTransparency = 0.15, BorderSizePixel = 0, ZIndex = 6,
+            })
+            Ember.Parent = Holder
+            AddCorner(Ember, 20)
+            local rise = PlayTween(Ember, math.random(12, 22) / 10, {
+                Position = UDim2.new(Ember.Position.X.Scale, 0, -0.15, 0),
+                BackgroundTransparency = 1, Size = UDim2.fromOffset(1, 1)
+            }, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+            rise.Completed:Connect(function() if Ember then Ember:Destroy() end end)
+            task.wait(math.random(10, 24) / 100)
+        end
+    end)
+    return Holder
+end
+
+--=========================================================
+-- CREATE WINDOW
+--=========================================================
+
+function KRYVEX:CreateWindow(config)
+    config = config or {}
+    if config.Theme then KRYVEX:SetTheme(config.Theme) end
+    if config.ThemeAnimation ~= nil then KRYVEX.ThemeSettings.Animation = config.ThemeAnimation ~= false end
+
+    local Window = {}
+    Window.Title = config.Title or "Kryvex Hub"
+    Window.Subtitle = config.Subtitle or "Custom Library"
+    Window.Size = config.Size or Vector2.new(700, 440)
+    Window.MinSize = config.MinSize or Vector2.new(560, 360)
+    Window.MaxSize = config.MaxSize or Vector2.new(1000, 650)
+    Window.LastSize = Vector2.new(Window.Size.X, Window.Size.Y)
+    Window.Tabs = {}
+    Window.IsMinimized = false
+    Window.IsHidden = false
+    Window.Destroyed = false
+
+    local ScreenGui = Create("ScreenGui", {
+        Name = "KRYVEX_UI_" .. tostring(math.random(10000, 99999)),
+        ResetOnSpawn = false, IgnoreGuiInset = true, ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+    })
+    ScreenGui.Parent = GetParent()
+    Window.ScreenGui = ScreenGui
+
+    local Main = Create("Frame", {
+        Name = "Main",
+        Size = UDim2.fromOffset(Window.Size.X, Window.Size.Y),
+        Position = UDim2.new(0.5, -Window.Size.X / 2, 0.5, -Window.Size.Y / 2),
+        BackgroundColor3 = KRYVEX.Theme.Background, BorderSizePixel = 0, ClipsDescendants = true,
+    })
+    Main.Parent = ScreenGui
+    AddCorner(Main, 16)
+    Window.Main = Main
+
+    local MainSheen = Instance.new("UIGradient")
+    MainSheen.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, KRYVEX.Theme.Sheen1),
+        ColorSequenceKeypoint.new(0.45, KRYVEX.Theme.Sheen2),
+        ColorSequenceKeypoint.new(1, KRYVEX.Theme.Sheen3),
+    })
+    MainSheen.Rotation = 35
+    MainSheen.Parent = Main
+
+    local BgImage = Create("ImageLabel", {
+        Name = "BackgroundImage", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
+        Image = ResolveBackground() or "", ImageTransparency = KRYVEX.Background.Transparency,
+        ScaleType = Enum.ScaleType.Crop, ZIndex = 0, Visible = ResolveBackground() ~= nil,
+    })
+    BgImage.Parent = Main
+    AddCorner(BgImage, 16)
+    Window.BgImage = BgImage
+    FixImage(BgImage, "พื้นหลัง")
+
+    local HideScale = Instance.new("UIScale")
+    HideScale.Scale = 1
+    HideScale.Parent = Main
+    Window.HideScale = HideScale
+
+    local Header = Create("Frame", { Name = "Header", Size = UDim2.new(1, 0, 0, 58), BackgroundTransparency = 1, Active = true })
+    Header.Parent = Main
+
+    local Logo = Create("Frame", { Size = UDim2.fromOffset(36, 36), Position = UDim2.fromOffset(12, 11), BackgroundTransparency = 1 })
+    Logo.Parent = Header
+    AddCorner(Logo, 10)
+
+    local LogoImage = Create("ImageLabel", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Image = KRYVEX.LogoImage, ScaleType = Enum.ScaleType.Fit })
+    LogoImage.Parent = Logo
+    FixImage(LogoImage, "โลโก้")
+
+    local Title = Create("TextLabel", {
+        Size = UDim2.new(1, -180, 0, 24), Position = UDim2.fromOffset(58, 7),
+        BackgroundTransparency = 1, Text = (KRYVEX.Theme.IsHalloween and "\u{1F383} " or "") .. Window.Title,
+        TextColor3 = KRYVEX.Theme.Text, TextSize = 17, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd,
+    })
+    Title.Parent = Header
+
+    local Subtitle = Create("TextLabel", {
+        Size = UDim2.new(1, -180, 0, 20), Position = UDim2.fromOffset(58, 31),
+        BackgroundTransparency = 1, Text = Window.Subtitle, TextColor3 = KRYVEX.Theme.SubText,
+        TextSize = 11, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd,
+    })
+    Subtitle.Parent = Header
+
+    local MinimizeButton = Create("TextButton", {
+        Size = UDim2.fromOffset(36, 36), Position = UDim2.new(1, -90, 0, 11),
+        BackgroundColor3 = KRYVEX.Theme.Card, Text = "-", TextColor3 = KRYVEX.Theme.Text, TextSize = 20, Font = Enum.Font.GothamBold, AutoButtonColor = false,
+    })
+    MinimizeButton.Parent = Header
+    AddCorner(MinimizeButton, 10)
+    Window.MinimizeButton = MinimizeButton
+
+    local CloseButton = Create("TextButton", {
+        Size = UDim2.fromOffset(36, 36), Position = UDim2.new(1, -48, 0, 11),
+        BackgroundColor3 = KRYVEX.Theme.Card, Text = "\u{D7}", TextColor3 = KRYVEX.Theme.Text, TextSize = 22, Font = Enum.Font.GothamBold, AutoButtonColor = false,
+    })
+    CloseButton.Parent = Header
+    AddCorner(CloseButton, 10)
+    Window.CloseButton = CloseButton
+
+    KRYVEX.BuildSeasonFX(Window, Main, Header, Title)
+
+    -- Dragging Window
+    local dragging = false
+    local dragStart, startPosition
+    Header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPosition = Main.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if not dragging then return end
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            local delta = input.Position - dragStart
+            Main.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + delta.X, startPosition.Y.Scale, startPosition.Y.Offset + delta.Y)
+        end
+    end)
+
+    -- Sidebar & Content
+    local Sidebar = Create("Frame", { Name = "Sidebar", Size = UDim2.new(0, 190, 1, -58), Position = UDim2.fromOffset(0, 58), BackgroundColor3 = KRYVEX.Theme.Sidebar, BackgroundTransparency = KRYVEX.Glass.Sidebar, BorderSizePixel = 0 })
+    Sidebar.Parent = Main
+
+    local Profile = Create("Frame", { Size = UDim2.new(1, -20, 0, 76), Position = UDim2.fromOffset(10, 10), BackgroundColor3 = KRYVEX.Theme.Card })
+    Profile.Parent = Sidebar
+    AddCorner(Profile, 10)
+
+    local Avatar = Create("ImageLabel", { Size = UDim2.fromOffset(46, 46), Position = UDim2.fromOffset(10, 15), BackgroundTransparency = 1, Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=150&h=150" })
+    Avatar.Parent = Profile
+    AddCorner(Avatar, 10)
+
+    local DisplayName = Create("TextLabel", { Size = UDim2.new(1, -70, 0, 21), Position = UDim2.fromOffset(64, 11), BackgroundTransparency = 1, Text = LocalPlayer.DisplayName, TextColor3 = KRYVEX.Theme.Text, TextSize = 13, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd })
+    DisplayName.Parent = Profile
+
+    local Username = Create("TextLabel", { Size = UDim2.new(1, -70, 0, 20), Position = UDim2.fromOffset(64, 34), BackgroundTransparency = 1, Text = "@" .. LocalPlayer.Name, TextColor3 = KRYVEX.Theme.SubText, TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd })
+    Username.Parent = Profile
+
+    local TabHolder = Create("ScrollingFrame", { Name = "TabHolder", Size = UDim2.new(1, -20, 1, -105), Position = UDim2.fromOffset(10, 96), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = KRYVEX.Theme.Primary, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y })
+    TabHolder.Parent = Sidebar
+
+    local TabLayout = Instance.new("UIListLayout")
+    TabLayout.Padding = UDim.new(0, 5)
+    TabLayout.Parent = TabHolder
+
+    local Content = Create("Frame", { Name = "Content", Size = UDim2.new(1, -190, 1, -58), Position = UDim2.new(0, 190, 0, 58), BackgroundTransparency = 1 })
+    Content.Parent = Main
+    Window.Content = Content
+
+    -- Notification Holder
+    local NotificationHolder = Create("Frame", { Size = UDim2.fromOffset(300, 500), Position = UDim2.new(1, -315, 0, 15), BackgroundTransparency = 1 })
+    NotificationHolder.Parent = ScreenGui
+    local NotificationLayout = Instance.new("UIListLayout")
+    NotificationLayout.Padding = UDim.new(0, 8)
+    NotificationLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    NotificationLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    NotificationLayout.Parent = NotificationHolder
+
+    function Window:Notify(config)
+        config = config or {}
+        local Notification = Create("Frame", { Size = UDim2.fromOffset(280, 72), BackgroundColor3 = KRYVEX.Theme.Card })
+        Notification.Parent = NotificationHolder
+        AddCorner(Notification, 10)
+        AddStroke(Notification, KRYVEX.Theme.Primary, 0.45, 1)
+
+        local NTitle = Create("TextLabel", { Size = UDim2.new(1, -20, 0, 22), Position = UDim2.fromOffset(10, 7), BackgroundTransparency = 1, Text = config.Title or "Kryvex Hub", TextColor3 = KRYVEX.Theme.Text, TextSize = 13, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left })
+        NTitle.Parent = Notification
+
+        local NContent = Create("TextLabel", { Size = UDim2.new(1, -20, 0, 35), Position = UDim2.fromOffset(10, 31), BackgroundTransparency = 1, Text = config.Content or "", TextColor3 = KRYVEX.Theme.SubText, TextSize = 11, Font = Enum.Font.Gotham, TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top })
+        NContent.Parent = Notification
+
+        Notification.Position = UDim2.new(1, 40, 0, 0)
+        PlayTween(Notification, 0.35, { Position = UDim2.new(0, 0, 0, 0) }, Enum.EasingStyle.Quint)
+
+        task.delay(config.Duration or 3, function()
+            if not Notification.Parent then return end
+            local Out = PlayTween(Notification, 0.3, { Position = UDim2.new(1, 40, 0, 0), BackgroundTransparency = 1 })
+            Out.Completed:Wait()
+            Notification:Destroy()
+        end)
+        return Notification
+    end
+
+    function Window:Minimize(state)
+        if Window.Destroyed or Window.IsHidden then return end
+        if state == nil then state = not Window.IsMinimized end
+        Window.IsMinimized = state
+        if state then
+            Window.LastSize = Vector2.new(Main.AbsoluteSize.X, Main.AbsoluteSize.Y)
+            PlayTween(Main, 0.3, { Size = UDim2.fromOffset(Window.LastSize.X, 58) }, Enum.EasingStyle.Quart, Enum.EasingDirection.InOut)
+            MinimizeButton.Text = "+"
+        else
+            PlayTween(Main, 0.35, { Size = UDim2.fromOffset(Window.LastSize.X, Window.LastSize.Y) }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            MinimizeButton.Text = "-"
+        end
+    end
+
+    function Window:Hide()
+        if Window.Destroyed or Window.IsHidden then return end
+        Window.IsHidden = true
+        Window.LastSize = Vector2.new(Main.AbsoluteSize.X, Main.AbsoluteSize.Y)
+        Window.LastPosition = Main.Position
+        Main.Active = false
+        PlayTween(BgImage, 0.32, { ImageTransparency = 1 })
+        PlayTween(HideScale, 0.32, { Scale = 0.82 }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+        PlayTween(Main, 0.32, { Position = UDim2.new(Window.LastPosition.X.Scale, Window.LastPosition.X.Offset, Window.LastPosition.Y.Scale, Window.LastPosition.Y.Offset + 20), BackgroundTransparency = 1 }, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+        task.delay(0.33, function()
+            if Window.IsHidden and not Window.Destroyed then Main.Visible = false end
+        end)
+    end
+
+    function Window:Show()
+        if Window.Destroyed or not Window.IsHidden then return end
+        Window.IsHidden = false
+        Main.Visible = true
+        local Position = Window.LastPosition or Main.Position
+        Main.Position = UDim2.new(Position.X.Scale, Position.X.Offset, Position.Y.Scale, Position.Y.Offset + 20)
+        HideScale.Scale = 0.82
+        Main.BackgroundTransparency = 1
+        BgImage.ImageTransparency = 1
+        PlayTween(BgImage, 0.4, { ImageTransparency = KRYVEX.Background.Transparency })
+        Main.Active = true
+        PlayTween(HideScale, 0.4, { Scale = 1 }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        PlayTween(Main, 0.4, { Position = Position, BackgroundTransparency = KRYVEX.Glass.Main }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    end
+
+    function Window:ToggleVisibility()
+        if Window.Destroyed then return end
+        if Window.IsHidden then Window:Show() else Window:Hide() end
+    end
+
+    function Window:Destroy()
+        if Window.Destroyed then return end
+        Window.Destroyed = true
+        PlayTween(BgImage, 0.3, { ImageTransparency = 1 })
+        local tween = PlayTween(Main, 0.3, {
+            Size = UDim2.fromOffset(Main.AbsoluteSize.X * 0.8, Main.AbsoluteSize.Y * 0.8),
+            BackgroundTransparency = 1,
+            Position = UDim2.new(Main.Position.X.Scale, Main.Position.X.Offset, Main.Position.Y.Scale, Main.Position.Y.Offset + 20)
+        }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+        tween.Completed:Connect(function()
+            if ScreenGui then ScreenGui:Destroy() end
+        end)
+    end
+
+    MinimizeButton.Activated:Connect(function()
+        if Window.IsHidden then return end
+        Window:Minimize(not Window.IsMinimized)
+    end)
+
+    CloseButton.Activated:Connect(function()
+        Window:Destroy()
+    end)
+
+    -- Tab System
+    function Window:Tab(config, icon)
+        if type(config) == "table" then
+            return Window:CreateTab(config.Title or config.Name or "Tab", config.Icon or icon)
+        end
+        return Window:CreateTab(config, icon)
+    end
+
+    function Window:CreateTab(name, icon)
+        local Tab = {}
+        Tab.Name = name or "Tab"
+        Tab.Icon = icon
+        Tab.Elements = {}
+        table.insert(Window.Tabs, Tab)
+
+        local TabButton = Create("TextButton", {
+            Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = KRYVEX.Theme.Sidebar, BackgroundTransparency = 1,
+            Text = Tab.Name, TextColor3 = KRYVEX.Theme.SubText, TextSize = 12, Font = Enum.Font.GothamMedium,
+            TextXAlignment = Enum.TextXAlignment.Left, AutoButtonColor = false,
+        })
+        TabButton.Parent = TabHolder
+        AddCorner(TabButton, 8)
+        local padding = Instance.new("UIPadding")
+        padding.PaddingLeft = UDim.new(0, 12)
+        padding.Parent = TabButton
+
+        local iconKind, iconData = ResolveIcon(Tab.Icon)
+        if iconKind then
+            padding.PaddingLeft = UDim.new(0, 38)
+            local IconObject = (iconKind == "image") and Create("ImageLabel", {
+                Size = UDim2.fromOffset(18, 18), Position = UDim2.new(0, -26, 0.5, -9), BackgroundTransparency = 1,
+                Image = iconData.Image or "", ImageColor3 = KRYVEX.Theme.SubText, ScaleType = Enum.ScaleType.Fit,
+            }) or Create("TextLabel", {
+                Size = UDim2.fromOffset(18, 18), Position = UDim2.new(0, -26, 0.5, -9), BackgroundTransparency = 1,
+                Text = iconData, TextColor3 = KRYVEX.Theme.SubText, TextSize = 16, Font = Enum.Font.GothamBold,
+            })
+            IconObject.Parent = TabButton
+            Tab.IconObject = IconObject
+        end
+
+        local Page = Create("ScrollingFrame", {
+            Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0,
+            ScrollBarThickness = 2, ScrollBarImageColor3 = KRYVEX.Theme.Primary, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Visible = false,
+        })
+        Page.Parent = Content
+
+        local PagePadding = Instance.new("UIPadding")
+        PagePadding.PaddingTop = UDim.new(0, 12)
+        PagePadding.PaddingBottom = UDim.new(0, 12)
+        PagePadding.PaddingLeft = UDim.new(0, 12)
+        PagePadding.PaddingRight = UDim.new(0, 12)
+        PagePadding.Parent = Page
+
+        local PageLayout = Instance.new("UIListLayout")
+        PageLayout.Padding = UDim.new(0, 8)
+        PageLayout.Parent = Page
+
+        Tab.Button = TabButton
+        Tab.Page = Page
+
+        function Tab:Select()
+            for _, other in ipairs(Window.Tabs) do
+                if other.Button then
+                    PlayTween(other.Button, 0.15, { BackgroundTransparency = 1, TextColor3 = KRYVEX.Theme.SubText })
+                end
+                if other.IconObject then
+                    if other.IconObject:IsA("ImageLabel") then PlayTween(other.IconObject, 0.15, { ImageColor3 = KRYVEX.Theme.SubText })
+                    else PlayTween(other.IconObject, 0.15, { TextColor3 = KRYVEX.Theme.SubText }) end
+                end
+                if other.Page then other.Page.Visible = false end
+            end
+            if Tab.IconObject then
+                if Tab.IconObject:IsA("ImageLabel") then PlayTween(Tab.IconObject, 0.15, { ImageColor3 = KRYVEX.Theme.Text })
+                else PlayTween(Tab.IconObject, 0.15, { TextColor3 = KRYVEX.Theme.Text }) end
+            end
+            PlayTween(TabButton, 0.15, { BackgroundColor3 = KRYVEX.Theme.PrimaryDark, BackgroundTransparency = 0.15, TextColor3 = KRYVEX.Theme.Text })
+            Page.Visible = true
+        end
+
+        TabButton.Activated:Connect(function() Tab:Select() end)
+
+        -- Elements inside Tab
+        function Tab:CreateButton(config)
+            config = config or {}
+            local Button = Create("TextButton", {
+                Size = UDim2.new(1, 0, 0, 42), BackgroundColor3 = KRYVEX.Theme.Card,
+                Text = config.Name or "Button", TextColor3 = KRYVEX.Theme.Text, TextSize = 12, Font = Enum.Font.GothamMedium, AutoButtonColor = false,
+            })
+            Button.Parent = Page
+            AddCorner(Button, KRYVEX.Corners.Element)
+            AddStroke(Button, KRYVEX.Theme.Primary, 0.8, 1)
+
+            Button.Activated:Connect(function()
+                if config.Callback then task.spawn(config.Callback) end
+            end)
+            Button.MouseEnter:Connect(function() PlayTween(Button, 0.15, { BackgroundColor3 = KRYVEX.Theme.CardHover }) end)
+            Button.MouseLeave:Connect(function() PlayTween(Button, 0.15, { BackgroundColor3 = KRYVEX.Theme.Card }) end)
+            return Button
+        end
+
+        function Tab:CreateToggle(config)
+            config = config or {}
+            local state = config.Default or false
+            local Frame = Create("Frame", { Size = UDim2.new(1, 0, 0, 46), BackgroundColor3 = KRYVEX.Theme.Card })
+            Frame.Parent = Page
+            AddCorner(Frame, KRYVEX.Corners.Element)
+
+            local Label = Create("TextLabel", {
+                Size = UDim2.new(1, -70, 1, 0), Position = UDim2.fromOffset(14, 0), BackgroundTransparency = 1,
+                Text = config.Name or "Toggle", TextColor3 = KRYVEX.Theme.Text, TextSize = 12, Font = Enum.Font.GothamMedium, TextXAlignment = Enum.TextXAlignment.Left,
+            })
+            Label.Parent = Frame
+
+            local Toggle = Create("TextButton", {
+                Size = UDim2.fromOffset(40, 22), Position = UDim2.new(1, -54, 0.5, -11),
+                BackgroundColor3 = state and KRYVEX.Theme.Primary or KRYVEX.Theme.ToggleOff, Text = "", AutoButtonColor = false,
+            })
+            Toggle.Parent = Frame
+            AddCorner(Toggle, 11)
+
+            local Circle = Create("Frame", {
+                Size = UDim2.fromOffset(16, 16), Position = state and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8),
+                BackgroundColor3 = Color3.new(1, 1, 1),
+            })
+            Circle.Parent = Toggle
+            AddCorner(Circle, 8)
+
+            local function Update()
+                PlayTween(Toggle, 0.15, { BackgroundColor3 = state and KRYVEX.Theme.Primary or KRYVEX.Theme.ToggleOff })
+                PlayTween(Circle, 0.15, { Position = state and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8) })
+                if config.Callback then task.spawn(config.Callback, state) end
+            end
+
+            Toggle.Activated:Connect(function()
+                state = not state
+                Update()
+            end)
+
+            return { Set = function(_, val) state = val Update() end, Get = function() return state end }
+        end
+
+        function Tab:CreateSection(text)
+            local Section = Create("TextLabel", {
+                Size = UDim2.new(1, 0, 0, 26), BackgroundTransparency = 1, Text = text or "Section",
+                TextColor3 = KRYVEX.Theme.Primary, TextSize = 12, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left,
+            })
+            Section.Parent = Page
+            return Section
+        end
+
+        return Tab
+    end
+
+    -- Select first tab automatically
+    task.spawn(function()
+        task.wait()
+        if Window.Tabs[1] then Window.Tabs[1]:Select() end
+    end)
+
+    return Window
+end
+
+return KRYVEX
